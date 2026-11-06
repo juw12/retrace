@@ -9,6 +9,7 @@ python app.py              # opens ReverseAI in its own window (Edge/Chrome app 
 python app.py --install    # Windows: add ReverseAI to the Start menu (runs without a console)
 python app.py --browser    # or use a normal browser tab
 python -m unittest discover -s tests
+python tests/ui_smoke.py http://127.0.0.1:8765/   # optional browser check (needs Playwright)
 ```
 
 Closing the window stops the app. It's also an installable PWA (browser menu → Install ReverseAI).

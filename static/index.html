@@ -1,0 +1,481 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ReverseAI — find the AI behind anything</title>
+<meta name="description" content="Find the AI, prompt, model, tools and settings behind an image, a text, a website or a chatbot API.">
+<meta name="theme-color" content="#0d1117">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" type="image/png" href="/icons/favicon.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<style>
+  :root {
+    --bg: #0d1117; --panel: #151b23; --panel-2: #1b2230; --line: #2a3340;
+    --text: #e6edf3; --muted: #8b98a8; --accent: #8b6cff; --accent-2: #36c5f0;
+    --high: #3fb950; --medium: #d29922; --low: #58a6ff; --none: #6e7681; --bad: #f85149;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: radial-gradient(1200px 600px at 10% -10%, #221a4d 0%, var(--bg) 55%);
+         color: var(--text); font: 15px/1.5 "Segoe UI", system-ui, sans-serif; min-height: 100vh; }
+  header { max-width: 1100px; margin: 0 auto; padding: 28px 20px 8px; }
+  h1 { margin: 0; font-size: 30px; letter-spacing: -0.5px; }
+  h1 span { background: linear-gradient(90deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; color: transparent; }
+  header p { margin: 4px 0 16px; color: var(--muted); }
+  nav { display: flex; gap: 6px; flex-wrap: wrap; }
+  nav button { background: transparent; border: 1px solid var(--line); color: var(--muted); padding: 7px 14px;
+               border-radius: 999px; cursor: pointer; font: inherit; }
+  nav button.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  main { max-width: 1100px; margin: 0 auto; padding: 12px 20px 60px; }
+  .tab { display: none; } .tab.active { display: block; }
+  .panel, .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px; margin-bottom: 16px; }
+  .drop.dragging { border-color: var(--accent); box-shadow: 0 0 0 3px #8b6cff44; }
+  textarea, input[type=text], input[type=password], select {
+    width: 100%; background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 10px;
+    padding: 10px 12px; font: inherit; }
+  textarea { min-height: 140px; resize: vertical; }
+  label.field { display: block; margin: 10px 0 4px; color: var(--muted); font-size: 13px; }
+  .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 12px; }
+  .grow { flex: 1; }
+  button.primary, .file-btn { background: var(--accent); color: #fff; border: 0; padding: 9px 18px; border-radius: 10px;
+                              cursor: pointer; font: inherit; font-weight: 600; }
+  .file-btn { background: var(--panel-2); border: 1px solid var(--line); font-weight: 500; }
+  button.ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); padding: 6px 12px;
+                 border-radius: 8px; cursor: pointer; font: inherit; font-size: 13px; }
+  .muted { color: var(--muted); } .small { font-size: 13px; }
+  .card-head { display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+  .card h2 { margin: 0; font-size: 17px; } .card h3 { margin: 18px 0 8px; font-size: 14px; color: var(--muted);
+            text-transform: uppercase; letter-spacing: .6px; }
+  .badge { padding: 6px 12px; border-radius: 999px; font-weight: 600; border: 1px solid; }
+  .badge small { font-weight: 400; opacity: .8; }
+  .badge.high { color: var(--high); border-color: var(--high); background: #3fb95018; }
+  .badge.medium { color: var(--medium); border-color: var(--medium); background: #d2992218; }
+  .badge.low { color: var(--low); border-color: var(--low); background: #58a6ff18; }
+  .badge.none { color: var(--none); border-color: var(--none); }
+  .bars div.bar-row { display: grid; grid-template-columns: 260px 1fr 40px; gap: 10px; align-items: center; margin: 4px 0; }
+  .bar { height: 8px; border-radius: 4px; background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  td { padding: 6px 8px; border-top: 1px solid var(--line); vertical-align: top; word-break: break-word; }
+  td:first-child { color: var(--muted); width: 32%; }
+  pre { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 12px; white-space: pre-wrap;
+        word-break: break-word; max-height: 420px; overflow: auto; margin: 6px 0; font: 13px/1.45 Consolas, monospace; }
+  .prompt pre { border-color: #8b6cff88; font-size: 14px; }
+  .chip { display: inline-block; font-size: 11px; padding: 1px 8px; border-radius: 999px; border: 1px solid; margin-right: 6px; }
+  .chip.strong { color: var(--high); } .chip.medium { color: var(--medium); } .chip.weak { color: var(--low); }
+  details { margin: 8px 0; } summary { cursor: pointer; color: var(--muted); }
+  .note { background: var(--panel-2); border-left: 3px solid var(--medium); padding: 8px 12px; border-radius: 6px;
+          margin: 8px 0; font-size: 13px; color: var(--muted); }
+  .note.bad { border-color: var(--bad); color: #ffb4ae; }
+  .loading { color: var(--muted); padding: 14px; } .loading::after { content: " ⏳"; }
+  .preview { max-height: 140px; border-radius: 10px; border: 1px solid var(--line); }
+  .lib-row { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0; border-top: 1px solid var(--line); }
+  .lib-row button { background: none; border: 0; color: var(--accent-2); cursor: pointer; text-align: left; font: inherit; padding: 0; }
+  a { color: var(--accent-2); }
+  .hint-list { margin: 8px 0 0; padding-left: 18px; color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Reverse<span>AI</span></h1>
+  <p>Find the AI, prompt, model, tools &amp; settings behind an image, a text, a website or a chatbot API.</p>
+  <nav>
+    <button data-tab="reverse" class="active">Reverse anything</button>
+    <button data-tab="probe">Endpoint probe</button>
+    <button data-tab="library">Prompt &amp; skills library</button>
+    <button data-tab="settings">Settings (LLM)</button>
+  </nav>
+</header>
+
+<main>
+  <section id="tab-reverse" class="tab active">
+    <div id="drop" class="panel drop">
+      <textarea id="input" placeholder="Paste AI-looking text, a website URL (https://…), or an AI app name (cursor, v0, claude code, perplexity…).&#10;Or drop / paste an image here (PNG, JPEG, WebP)."></textarea>
+      <div class="row">
+        <label class="file-btn">Choose image…<input type="file" id="file" accept="image/*" hidden></label>
+        <span id="file-name" class="muted small"></span>
+        <span class="grow"></span>
+        <label class="small"><input type="checkbox" id="use-llm"> Also ask my LLM to reverse-engineer the prompt</label>
+        <button id="go" class="primary">Reverse</button>
+      </div>
+      <ul class="hint-list">
+        <li><b>Image</b> → generator, exact prompt / negative prompt / seed / model / LoRAs from metadata, C2PA Content Credentials.</li>
+        <li><b>Text</b> → which chatbot wrote it (citation tokens, self-ID, style), hidden Unicode payloads, AI-likelihood.</li>
+        <li><b>URL</b> → AI chat widgets, AI APIs, AI site-builders, llms.txt, AI-crawler rules, agent cards &amp; skills, leaked prompts.</li>
+        <li><b>App name</b> → leaked system prompts, tool definitions and skills from public GitHub collections.</li>
+      </ul>
+    </div>
+    <div id="results"></div>
+  </section>
+
+  <section id="tab-probe" class="tab">
+    <div class="panel">
+      <p class="muted small">Fingerprints the model behind any OpenAI-compatible <code>/chat/completions</code> API and tests whether it reveals its system prompt and tools. Only for APIs you own or may test.</p>
+      <label class="field">Base URL</label><input type="text" id="probe-base">
+      <div class="row">
+        <div class="grow"><label class="field">API key</label><input type="password" id="probe-key"></div>
+        <div class="grow"><label class="field">Model</label><input type="text" id="probe-model"></div>
+      </div>
+      <label class="field">Optional: paste YOUR app's system prompt to measure how much of it leaks</label>
+      <textarea id="probe-system" style="min-height:90px"></textarea>
+      <div class="row">
+        <label class="small"><input type="checkbox" id="probe-ok"> I own this endpoint or am authorized to test it</label>
+        <span class="grow"></span>
+        <button id="probe-go" class="primary">Run fingerprint</button>
+      </div>
+    </div>
+    <div id="probe-results"></div>
+  </section>
+
+  <section id="tab-library" class="tab">
+    <div class="panel">
+      <div class="row" style="margin-top:0">
+        <input type="text" id="lib-q" class="grow" placeholder="AI app or model: cursor, claude code, v0, lovable, perplexity, grok, chatgpt…">
+        <button id="lib-go" class="primary">Search</button>
+      </div>
+      <p class="muted small" id="lib-sources"></p>
+    </div>
+    <div id="lib-results"></div>
+  </section>
+
+  <section id="tab-settings" class="tab">
+    <div class="panel">
+      <p class="muted small">Optional. Used for "Ask my LLM" (visual / textual reverse-prompt) and as the default for Endpoint probe.
+        Any OpenAI-compatible API works. The key is kept in this browser's localStorage and only sent to your local ReverseAI server, which forwards it to the provider.</p>
+      <label class="field">Preset</label>
+      <select id="preset">
+        <option value="">— choose —</option>
+        <option value="https://api.openai.com/v1|gpt-4o-mini">OpenAI</option>
+        <option value="https://openrouter.ai/api/v1|openai/gpt-4o-mini">OpenRouter</option>
+        <option value="https://generativelanguage.googleapis.com/v1beta/openai|gemini-2.5-flash">Google Gemini</option>
+        <option value="https://api.anthropic.com/v1|claude-sonnet-4-5">Anthropic (OpenAI-compatible)</option>
+        <option value="https://api.groq.com/openai/v1|llama-3.3-70b-versatile">Groq</option>
+        <option value="http://localhost:11434/v1|llava">Ollama (local, free)</option>
+        <option value="http://localhost:1234/v1|local-model">LM Studio (local, free)</option>
+      </select>
+      <label class="field">Base URL</label><input type="text" id="set-base">
+      <label class="field">API key (blank for local models)</label><input type="password" id="set-key">
+      <label class="field">Model (must support images for image reverse-prompt)</label><input type="text" id="set-model">
+      <div class="row"><button id="set-save" class="primary">Save</button><span id="set-status" class="muted small"></span></div>
+    </div>
+  </section>
+</main>
+
+<script>
+const $ = (selector) => document.querySelector(selector);
+
+function el(tag, attributes = {}, ...children) {
+  const node = document.createElement(tag);
+  for (const [key, value] of Object.entries(attributes)) {
+    if (key === "class") node.className = value;
+    else if (key.startsWith("on")) node.addEventListener(key.slice(2), value);
+    else node.setAttribute(key, value);
+  }
+  for (const child of children.flat()) {
+    if (child === null || child === undefined || child === false) continue;
+    node.append(child instanceof Node ? child : String(child));
+  }
+  return node;
+}
+
+/* ---------- tabs & settings ---------- */
+document.querySelectorAll("nav button").forEach((button) => {
+  button.addEventListener("click", () => {
+    document.querySelectorAll("nav button").forEach((b) => b.classList.toggle("active", b === button));
+    document.querySelectorAll(".tab").forEach((t) => t.classList.toggle("active", t.id === "tab-" + button.dataset.tab));
+  });
+});
+
+function llmConfig() {
+  return JSON.parse(localStorage.getItem("reverseai.llm") || "{}");
+}
+
+function loadSettings() {
+  const config = llmConfig();
+  $("#set-base").value = config.base_url || "https://api.openai.com/v1";
+  $("#set-key").value = config.api_key || "";
+  $("#set-model").value = config.model || "";
+  $("#probe-base").value = $("#set-base").value;
+  $("#probe-key").value = $("#set-key").value;
+  $("#probe-model").value = $("#set-model").value;
+}
+
+$("#preset").addEventListener("change", (event) => {
+  if (!event.target.value) return;
+  const [base, model] = event.target.value.split("|");
+  $("#set-base").value = base;
+  $("#set-model").value = model;
+});
+
+$("#set-save").addEventListener("click", () => {
+  localStorage.setItem("reverseai.llm", JSON.stringify({
+    base_url: $("#set-base").value.trim(),
+    api_key: $("#set-key").value.trim(),
+    model: $("#set-model").value.trim(),
+  }));
+  loadSettings();
+  $("#set-status").textContent = "Saved ✓";
+});
+
+/* ---------- API ---------- */
+async function api(path, body) {
+  const options = body === undefined ? {} : {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  };
+  const response = await fetch(path, options);
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || response.statusText);
+  return data;
+}
+
+function loading(container, message) {
+  const node = el("div", { class: "loading" }, message);
+  container.append(node);
+  return node;
+}
+
+function errorBox(error) {
+  return el("div", { class: "note bad" }, String(error.message || error));
+}
+
+/* ---------- report rendering ---------- */
+function renderReport(title, report, extra) {
+  const card = el("div", { class: "card" });
+  const verdict = report.verdict;
+  card.append(el("div", { class: "card-head" },
+    el("h2", {}, title),
+    el("span", { class: "badge " + verdict.confidence }, verdict.label,
+       el("small", {}, ` · ${verdict.confidence} confidence`))));
+  if (extra) card.append(extra);
+
+  if (report.candidates.length > 1) {
+    const top = report.candidates[0].score;
+    card.append(el("h3", {}, "Candidates"), el("div", { class: "bars" }, report.candidates.slice(0, 6).map((c) =>
+      el("div", { class: "bar-row" }, el("span", {}, c.name),
+         el("div", { class: "bar", style: `width:${Math.max(4, (100 * c.score) / top)}%` }),
+         el("span", { class: "muted small" }, c.score)))));
+  }
+
+  if (report.prompt && report.prompt.positive) {
+    const box = el("div", { class: "prompt" }, el("h3", {}, "Recovered prompt"),
+      el("div", { class: "muted small" }, "Source: " + report.prompt.source),
+      el("pre", {}, report.prompt.positive), copyButton(report.prompt.positive));
+    if (report.prompt.negative) {
+      box.append(el("h3", {}, "Negative prompt"), el("pre", {}, report.prompt.negative));
+    }
+    card.append(box);
+  }
+
+  if (report.llm) card.append(llmBlock(report.llm));
+  if (report.llm_error) card.append(el("div", { class: "note bad" }, "LLM step failed: " + report.llm_error));
+
+  const details = Object.entries(report.details || {});
+  if (details.length) {
+    card.append(el("h3", {}, "Details"), el("table", {}, details.map(([key, value]) =>
+      el("tr", {}, el("td", {}, key), el("td", {}, String(value))))));
+  }
+
+  for (const section of report.sections || []) {
+    card.append(el("details", { open: "" }, el("summary", {}, section.title), el("pre", {}, section.body)));
+  }
+
+  if (report.evidence.length) {
+    card.append(el("h3", {}, "Evidence"), el("table", {}, report.evidence.map((item) =>
+      el("tr", {},
+         el("td", {}, el("span", { class: "chip " + item.strength }, item.strength), item.candidate || "—"),
+         el("td", {}, item.signal, item.detail ? el("div", { class: "muted small" }, item.detail) : null)))));
+  }
+
+  for (const note of report.notes || []) card.append(el("div", { class: "note" }, note));
+  if (report.raw && Object.keys(report.raw).length) {
+    card.append(el("details", {}, el("summary", {}, "Raw data"), el("pre", {}, JSON.stringify(report.raw, null, 2))));
+  }
+  card.append(el("div", { class: "row" }, el("button", { class: "ghost", onclick: () => download(report) }, "Download JSON report")));
+  return card;
+}
+
+function llmBlock(result) {
+  const box = el("div", {}, el("h3", {}, "LLM reverse-engineering (best guess, not proof)"));
+  for (const [key, value] of Object.entries(result)) {
+    const text = typeof value === "string" ? value : JSON.stringify(value, null, 2);
+    box.append(el("div", { class: "muted small" }, key.replace(/_/g, " ")), el("pre", {}, text));
+  }
+  return box;
+}
+
+function copyButton(text) {
+  return el("button", { class: "ghost", onclick: (event) => {
+    navigator.clipboard.writeText(text);
+    event.target.textContent = "Copied ✓";
+  } }, "Copy");
+}
+
+function download(report) {
+  const blob = new Blob([JSON.stringify(report, null, 2)], { type: "application/json" });
+  const link = el("a", { href: URL.createObjectURL(blob), download: `reverseai-${report.kind}-report.json` });
+  link.click();
+}
+
+/* ---------- library ---------- */
+async function librarySection(query, title) {
+  const card = el("div", { class: "card" }, el("h2", {}, title || `Leaked system prompts, tools & skills matching “${query}”`));
+  const data = await api("/api/library/search?q=" + encodeURIComponent(query));
+  for (const error of data.errors) card.append(el("div", { class: "note bad" }, error));
+  if (!data.results.length) {
+    card.append(el("p", { class: "muted" }, "No matches in the public collections."));
+    return card;
+  }
+  card.append(el("p", { class: "muted small" }, `${data.total} files found${data.total > data.results.length ? ` (showing ${data.results.length})` : ""}. Click one to read it.`));
+  const viewer = el("pre", {});
+  viewer.hidden = true;
+  for (const item of data.results) {
+    const open = async () => {
+      viewer.hidden = false;
+      viewer.textContent = "Loading…";
+      viewer.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      try {
+        const file = await api(`/api/library/file?repo=${encodeURIComponent(item.repo)}&path=${encodeURIComponent(item.path)}`);
+        viewer.textContent = file.content;
+      } catch (error) {
+        viewer.textContent = String(error.message || error);
+      }
+    };
+    card.append(el("div", { class: "lib-row" },
+      el("button", { onclick: open }, item.path),
+      el("span", { class: "muted small" }, item.repo.split("/")[0] + " · ", el("a", { href: item.url, target: "_blank" }, "GitHub ↗"))));
+  }
+  card.append(viewer);
+  return card;
+}
+
+$("#lib-go").addEventListener("click", async () => {
+  const results = $("#lib-results");
+  const query = $("#lib-q").value.trim();
+  results.replaceChildren();
+  if (!query) return;
+  const spinner = loading(results, "Searching public collections (first search downloads file lists)…");
+  try {
+    results.append(await librarySection(query));
+  } catch (error) {
+    results.append(errorBox(error));
+  }
+  spinner.remove();
+});
+$("#lib-q").addEventListener("keydown", (event) => { if (event.key === "Enter") $("#lib-go").click(); });
+$("#lib-sources").textContent = "Sources: x1xhlol/system-prompts-and-models-of-ai-tools, elder-plinius/CL4R1T4S, jujumilk3/leaked-system-prompts, asgeirtj/system_prompts_leaks, anthropics/skills.";
+
+/* ---------- reverse anything ---------- */
+let pickedFile = null;
+
+function pickFile(file) {
+  if (!file) return;
+  pickedFile = file;
+  $("#file-name").textContent = `${file.name} (${Math.round(file.size / 1024)} KB) — press Reverse`;
+}
+
+$("#file").addEventListener("change", (event) => pickFile(event.target.files[0]));
+const drop = $("#drop");
+drop.addEventListener("dragover", (event) => { event.preventDefault(); drop.classList.add("dragging"); });
+drop.addEventListener("dragleave", () => drop.classList.remove("dragging"));
+drop.addEventListener("drop", (event) => {
+  event.preventDefault();
+  drop.classList.remove("dragging");
+  pickFile(event.dataTransfer.files[0]);
+});
+document.addEventListener("paste", (event) => {
+  const item = [...(event.clipboardData?.items || [])].find((i) => i.type.startsWith("image/"));
+  if (item) pickFile(item.getAsFile());
+});
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(",")[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function brandFromHost(hostname) {
+  const labels = hostname.replace(/^www\./, "").split(".");
+  if (labels.length >= 3 && ["co", "com", "org", "net", "ac"].includes(labels[labels.length - 2])) {
+    return labels[labels.length - 3];
+  }
+  return labels.length >= 2 ? labels[labels.length - 2] : labels[0];
+}
+
+$("#go").addEventListener("click", async () => {
+  const results = $("#results");
+  results.replaceChildren();
+  const useLlm = $("#use-llm").checked;
+  const value = $("#input").value.trim();
+  try {
+    if (pickedFile) {
+      const spinner = loading(results, useLlm ? "Reading metadata and asking your LLM…" : "Reading metadata…");
+      const data = await fileToBase64(pickedFile);
+      const report = await api("/api/image", {
+        filename: pickedFile.name, mime: pickedFile.type, data, use_llm: useLlm, llm: llmConfig(),
+      });
+      spinner.remove();
+      const preview = el("img", { class: "preview", src: URL.createObjectURL(pickedFile) });
+      results.append(renderReport("Image", report, el("div", { class: "row" }, preview)));
+      pickedFile = null;
+      $("#file-name").textContent = "";
+      $("#file").value = "";
+    } else if (/^https?:\/\/\S+$/i.test(value) || /^[\w-]+(\.[\w-]+)+(\/\S*)?$/.test(value)) {
+      const url = /^https?:/i.test(value) ? value : "https://" + value;
+      const spinner = loading(results, "Scanning website…");
+      const brand = brandFromHost(new URL(url).hostname);
+      const [siteResult, libraryResult] = await Promise.allSettled([
+        api("/api/site", { url }),
+        librarySection(brand, `Leaked prompts / tools / skills for “${brand}”`),
+      ]);
+      spinner.remove();
+      results.append(siteResult.status === "fulfilled" ? renderReport("Website", siteResult.value) : errorBox(siteResult.reason));
+      if (libraryResult.status === "fulfilled") results.append(libraryResult.value);
+    } else if (value && value.split(/\s+/).length <= 4 && value.length < 40) {
+      const spinner = loading(results, "Searching leaked prompt & skills collections…");
+      const card = await librarySection(value);
+      spinner.remove();
+      results.append(card);
+    } else if (value) {
+      const spinner = loading(results, useLlm ? "Analyzing text and asking your LLM…" : "Analyzing text…");
+      const report = await api("/api/text", { text: value, use_llm: useLlm, llm: llmConfig() });
+      spinner.remove();
+      results.append(renderReport("Text", report));
+    } else {
+      results.append(el("div", { class: "note" }, "Paste text, a URL or an app name — or choose / drop / paste an image."));
+    }
+  } catch (error) {
+    results.querySelectorAll(".loading").forEach((node) => node.remove());
+    results.append(errorBox(error));
+  }
+});
+
+/* ---------- endpoint probe ---------- */
+$("#probe-go").addEventListener("click", async () => {
+  const results = $("#probe-results");
+  results.replaceChildren();
+  const spinner = loading(results, "Sending fingerprint questions…");
+  try {
+    const report = await api("/api/probe", {
+      authorized: $("#probe-ok").checked,
+      system_prompt: $("#probe-system").value,
+      llm: { base_url: $("#probe-base").value.trim(), api_key: $("#probe-key").value.trim(), model: $("#probe-model").value.trim() },
+    });
+    results.append(renderReport("Endpoint fingerprint", report));
+  } catch (error) {
+    results.append(errorBox(error));
+  }
+  spinner.remove();
+});
+
+loadSettings();
+
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/sw.js").catch(() => {});
+}
+</script>
+</body>
+</html>

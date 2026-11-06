@@ -186,7 +186,7 @@ def _statistics(text):
             "Sentence-length variation (burstiness)": "n/a" if variation is None else f"{variation:.2f} (human text is usually > 0.5)",
             "Em dashes per 1,000 words": f"{em_dash_per_k:.1f}",
             "Markdown elements": markdown,
-            "Emoji / symbols": symbols,
+            "Symbol characters": symbols,
             "Vocabulary diversity": f"{diversity:.2f}",
         },
     }

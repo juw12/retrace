@@ -1,20 +1,20 @@
-# ReverseAI
+# Retrace
 
 Find the AI, prompt, model, tools and settings behind an **image**, a **text**, a **website** or a **chatbot API**.
-**Try the online demo:** https://juw12.github.io/reverse-ai/ (runs three recorded examples; the full app runs on your computer).
+**Try the online demo:** https://juw12.github.io/retrace/ (runs three recorded examples; the full app runs on your computer).
 
 A local desktop app: Python 3.10+ standard library only, no installs, nothing leaves your PC except the lookups you ask for.
 
 ```
-git clone https://github.com/juw12/reverse-ai && cd reverse-ai
-python app.py              # opens ReverseAI in its own window (Edge/Chrome app mode)
-python app.py --install    # Windows: add ReverseAI to the Start menu (runs without a console)
+git clone https://github.com/juw12/retrace && cd retrace
+python app.py              # opens Retrace in its own window (Edge/Chrome app mode)
+python app.py --install    # Windows: add Retrace to the Start menu (runs without a console)
 python app.py --browser    # or use a normal browser tab
 python -m unittest discover -s tests
 python tests/ui_smoke.py http://127.0.0.1:8765/   # optional browser check (needs Playwright)
 ```
 
-Closing the window stops the app. It is also an installable PWA (browser menu, Install ReverseAI), with light and dark themes.
+Closing the window stops the app. It is also an installable PWA (browser menu, Install Retrace), with light and dark themes.
 
 ## What it does
 

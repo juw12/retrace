@@ -28,7 +28,7 @@ MAX_TREE_BYTES = 30_000_000
 
 
 def _get(url, limit=MAX_FILE_BYTES):
-    headers = {"User-Agent": "ReverseAI", "Accept": "application/vnd.github+json"}
+    headers = {"User-Agent": "Retrace", "Accept": "application/vnd.github+json"}
     token = os.environ.get("GITHUB_TOKEN")
     if token and "api.github.com" in url:
         headers["Authorization"] = f"Bearer {token}"

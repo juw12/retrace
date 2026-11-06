@@ -1,7 +1,7 @@
-"""ReverseAI — find the AI, prompt, model, tools and settings behind an image, text,
+"""Retrace — find the AI, prompt, model, tools and settings behind an image, text,
 website or chatbot API. Local app, Python standard library only.
 
-    python app.py                 # opens ReverseAI in its own app window (Edge/Chrome app mode)
+    python app.py                 # opens Retrace in its own app window (Edge/Chrome app mode)
     python app.py --browser       # open in a normal browser tab instead
     python app.py --no-browser    # server only (http://127.0.0.1:8765)
     python app.py --install       # add a Start-menu shortcut (Windows)
@@ -151,11 +151,11 @@ def find_app_browser():
 
 
 def open_app_window(address):
-    """Open ReverseAI chromeless in its own browser profile; returns the process (None if no browser)."""
+    """Open Retrace chromeless in its own browser profile; returns the process (None if no browser)."""
     browser = find_app_browser()
     if not browser:
         return None
-    profile = Path(os.environ.get("LOCALAPPDATA", Path.home())) / "ReverseAI" / "window-profile"
+    profile = Path(os.environ.get("LOCALAPPDATA", Path.home())) / "Retrace" / "window-profile"
     profile.mkdir(parents=True, exist_ok=True)
     return subprocess.Popen([
         browser,
@@ -168,20 +168,20 @@ def open_app_window(address):
 
 
 def install_shortcut():
-    """Create a Start-menu shortcut that starts ReverseAI without a console window."""
+    """Create a Start-menu shortcut that starts Retrace without a console window."""
     if os.name != "nt":
         sys.exit("--install is Windows-only; on other systems run `python app.py`.")
     pythonw = Path(sys.executable).with_name("pythonw.exe")
     runner = pythonw if pythonw.exists() else Path(sys.executable)
     programs = Path(os.environ["APPDATA"]) / "Microsoft" / "Windows" / "Start Menu" / "Programs"
-    shortcut = programs / "ReverseAI.lnk"
+    shortcut = programs / "Retrace.lnk"
     script = (
         "$shell = New-Object -ComObject WScript.Shell; "
         f"$link = $shell.CreateShortcut('{shortcut}'); "
         f"$link.TargetPath = '{runner}'; "
         f"$link.Arguments = '\"{APP_DIR / 'app.py'}\"'; "
         f"$link.WorkingDirectory = '{APP_DIR}'; "
-        f"$link.IconLocation = '{STATIC_DIR / 'icons' / 'reverseai.ico'}'; "
+        f"$link.IconLocation = '{STATIC_DIR / 'icons' / 'retrace.ico'}'; "
         "$link.Description = 'Find the AI behind anything'; "
         "$link.Save()"
     )
@@ -199,7 +199,7 @@ def start_server(port):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="ReverseAI — find the AI behind anything")
+    parser = argparse.ArgumentParser(description="Retrace — find the AI behind anything")
     parser.add_argument("--port", type=int, default=8765)
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--browser", action="store_true", help="open in a normal browser tab")
@@ -213,7 +213,7 @@ def main():
 
     server = start_server(options.port)
     address = f"http://127.0.0.1:{server.server_port}/"
-    print(f"ReverseAI running at {address}  (Ctrl+C to stop)")
+    print(f"Retrace running at {address}  (Ctrl+C to stop)")
 
     window = None
     if not options.no_browser and not options.browser:

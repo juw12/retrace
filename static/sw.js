@@ -1,6 +1,6 @@
-// Minimal service worker: makes ReverseAI installable and keeps the shell available offline.
+// Minimal service worker: makes Retrace installable and keeps the shell available offline.
 // API calls always go to the local server (never cached).
-const CACHE = "reverseai-shell-v2";
+const CACHE = "retrace-shell-v1";
 const SHELL = ["./", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png", "icons/favicon.png"];
 
 self.addEventListener("install", (event) => {

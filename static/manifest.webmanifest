@@ -1,6 +1,6 @@
 {
-  "name": "ReverseAI — find the AI behind anything",
-  "short_name": "ReverseAI",
+  "name": "Retrace — find the AI behind anything",
+  "short_name": "Retrace",
   "description": "Find the AI, prompt, model, tools and settings behind an image, a text, a website or a chatbot API.",
   "id": "./",
   "start_url": "./",

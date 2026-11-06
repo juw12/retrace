@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ReverseAI — find the AI behind anything</title>
+<title>Retrace — find the AI behind anything</title>
 <meta name="description" content="Find the AI, prompt, model, tools and settings behind an image, a text, a website or a chatbot API.">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
@@ -230,7 +230,7 @@
 
 <header class="topbar">
   <div class="topbar-inner">
-    <div class="brand"><img src="icons/icon-192.png" alt="" width="28" height="28">ReverseAI</div>
+    <div class="brand"><img src="icons/icon-192.png" alt="" width="28" height="28">Retrace</div>
     <nav class="tabs" role="tablist" aria-label="Sections">
       <button role="tab" id="tab-btn-analyze" aria-controls="tab-analyze" aria-selected="true" data-tab="analyze">Analyze</button>
       <button role="tab" id="tab-btn-library" aria-controls="tab-library" aria-selected="false" data-tab="library">Prompt library</button>
@@ -244,7 +244,7 @@
   <section id="tab-analyze" role="tabpanel" aria-labelledby="tab-btn-analyze">
     <div class="page-head">
       <h1>Find the AI behind anything</h1>
-      <p>Paste text, a website address or an AI app name, or add an image. ReverseAI tells you which AI made it and recovers the prompt, model and settings when they are still there.</p>
+      <p>Paste text, a website address or an AI app name, or add an image. Retrace tells you which AI made it and recovers the prompt, model and settings when they are still there.</p>
     </div>
 
     <div class="panel composer" id="drop">
@@ -367,8 +367,8 @@
 </main>
 
 <footer class="site">
-  <span>ReverseAI runs on your computer. Only the lookups you start leave it.</span>
-  <span>Results are evidence, not proof. <a href="https://github.com/juw12/reverse-ai" target="_blank" rel="noopener">Source on GitHub</a></span>
+  <span>Retrace runs on your computer. Only the lookups you start leave it.</span>
+  <span>Results are evidence, not proof. <a href="https://github.com/juw12/retrace" target="_blank" rel="noopener">Source on GitHub</a></span>
 </footer>
 
 <script>
@@ -413,7 +413,7 @@ document.querySelectorAll("[data-goto]").forEach((button) => button.addEventList
 
 /* ---------- settings ---------- */
 function llmConfig() {
-  return JSON.parse(localStorage.getItem("reverseai.llm") || "{}");
+  return JSON.parse(localStorage.getItem("retrace.llm") || "{}");
 }
 
 function loadSettings() {
@@ -435,7 +435,7 @@ $("#preset").addEventListener("change", (event) => {
 });
 
 $("#set-save").addEventListener("click", () => {
-  localStorage.setItem("reverseai.llm", JSON.stringify({
+  localStorage.setItem("retrace.llm", JSON.stringify({
     base_url: $("#set-base").value.trim(),
     api_key: $("#set-key").value.trim(),
     model: $("#set-model").value.trim(),
@@ -465,7 +465,7 @@ async function demoApi(path, body) {
   if (query === EXAMPLES.app) key = "library";
   if (query !== null && query !== EXAMPLES.app) return { query, results: [], total: 0, errors: [] };
   if (!key) {
-    throw new Error("The online demo only runs the three examples. Download ReverseAI (free, runs on your computer) to analyze your own text, images, websites and APIs.");
+    throw new Error("The online demo only runs the three examples. Download Retrace (free, runs on your computer) to analyze your own text, images, websites and APIs.");
   }
   const response = await fetch(DEMO_FILES[key]);
   return response.json();
@@ -482,7 +482,7 @@ async function api(path, body) {
   try {
     response = await fetch(path, options);
   } catch (error) {
-    throw new Error("ReverseAI is not running. Start it again with python app.py.");
+    throw new Error("Retrace is not running. Start it again with python app.py.");
   }
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || response.statusText);
@@ -627,7 +627,7 @@ function renderReport(report, extra) {
 
 function download(report) {
   const blob = new Blob([JSON.stringify(report, null, 2)], { type: "application/json" });
-  el("a", { href: URL.createObjectURL(blob), download: `reverseai-${report.kind}-report.json` }).click();
+  el("a", { href: URL.createObjectURL(blob), download: `retrace-${report.kind}-report.json` }).click();
 }
 
 /* ---------- library ---------- */
@@ -883,7 +883,7 @@ updateDetected();
 if (DEMO) {
   const banner = el("div", { class: "note demo-banner" }, icon("info"),
     el("span", {}, "You are viewing the online demo. Try the examples below, or ",
-      el("a", { href: "https://github.com/juw12/reverse-ai#readme" }, "download ReverseAI"),
+      el("a", { href: "https://github.com/juw12/retrace#readme" }, "download Retrace"),
       " to analyze your own content privately on your computer."));
   $(".page-head").after(banner);
 }

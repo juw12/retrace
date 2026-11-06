@@ -16,7 +16,7 @@ from urllib.parse import urljoin, urlparse
 from .report import Report
 
 USER_AGENT = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-              "(KHTML, like Gecko) Chrome/130.0 Safari/537.36 ReverseAI/1.0")
+              "(KHTML, like Gecko) Chrome/130.0 Safari/537.36 Retrace/1.0")
 MAX_SCRIPTS = 12
 FIRST_PARTY_ONLY = ("AI API in client code", "AI framework")
 

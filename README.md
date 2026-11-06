@@ -1,6 +1,8 @@
 # ReverseAI
 
 Find the AI, prompt, model, tools and settings behind an **image**, a **text**, a **website** or a **chatbot API**.
+**Try the online demo:** https://juw12.github.io/reverse-ai/ (runs three recorded examples; the full app runs on your computer).
+
 A local desktop app: Python 3.10+ standard library only, no installs, nothing leaves your PC except the lookups you ask for.
 
 ```
@@ -12,7 +14,7 @@ python -m unittest discover -s tests
 python tests/ui_smoke.py http://127.0.0.1:8765/   # optional browser check (needs Playwright)
 ```
 
-Closing the window stops the app. It's also an installable PWA (browser menu → Install ReverseAI).
+Closing the window stops the app. It is also an installable PWA (browser menu, Install ReverseAI), with light and dark themes.
 
 ## What it does
 

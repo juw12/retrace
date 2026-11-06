@@ -1,0 +1,314 @@
+{
+ "query": "claude code",
+ "results": [
+  {
+   "repo": "x1xhlol/system-prompts-and-models-of-ai-tools",
+   "path": "Anthropic/Claude Code 2.0.txt",
+   "url": "https://github.com/x1xhlol/system-prompts-and-models-of-ai-tools/blob/HEAD/Anthropic/Claude%20Code%202.0.txt"
+  },
+  {
+   "repo": "elder-plinius/CL4R1T4S",
+   "path": "ANTHROPIC/Claude_Code_03-04-24.md",
+   "url": "https://github.com/elder-plinius/CL4R1T4S/blob/HEAD/ANTHROPIC/Claude_Code_03-04-24.md"
+  },
+  {
+   "repo": "jujumilk3/leaked-system-prompts",
+   "path": "anthropic-claude-code_20250304.md",
+   "url": "https://github.com/jujumilk3/leaked-system-prompts/blob/HEAD/anthropic-claude-code_20250304.md"
+  },
+  {
+   "repo": "jujumilk3/leaked-system-prompts",
+   "path": "anthropic-claude-code_20260902.md",
+   "url": "https://github.com/jujumilk3/leaked-system-prompts/blob/HEAD/anthropic-claude-code_20260902.md"
+  },
+  {
+   "repo": "jujumilk3/leaked-system-prompts",
+   "path": "anthropic-claude-code-print_20260902.md",
+   "url": "https://github.com/jujumilk3/leaked-system-prompts/blob/HEAD/anthropic-claude-code-print_20260902.md"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Anthropic/claude-code/claude-code-opus-5.md",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/claude-code-opus-5.md"
+  },
+  {
+   "repo": "jujumilk3/leaked-system-prompts",
+   "path": "claude-code-output-style-default_20251007.md",
+   "url": "https://github.com/jujumilk3/leaked-system-prompts/blob/HEAD/claude-code-output-style-default_20251007.md"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Anthropic/claude-code/claude-code-fable-5.md",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/claude-code-fable-5.md"
+  },
+  {
+   "repo": "jujumilk3/leaked-system-prompts",
+   "path": "claude-code-output-style-learning_20251007.md",
+   "url": "https://github.com/jujumilk3/leaked-system-prompts/blob/HEAD/claude-code-output-style-learning_20251007.md"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Anthropic/claude-code/claude-code-opus-4.6.md",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/claude-code-opus-4.6.md"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Anthropic/claude-code/claude-code-opus-4.7.md",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/claude-code-opus-4.7.md"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Anthropic/claude-code/claude-code-opus-4.8.md",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/claude-code-opus-4.8.md"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Anthropic/claude-code/claude-code-opus-5.5.md",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/claude-code-opus-5.5.md"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Anthropic/claude-code/claude-code-sonnet-5.md",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/claude-code-sonnet-5.md"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Anthropic/claude-code/claude-code-fable-5.1.md",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/claude-code-fable-5.1.md"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Anthropic/claude-code/claude-code-haiku-4.5.md",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/claude-code-haiku-4.5.md"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Anthropic/claude-code/claude-code-haiku-5.5.md",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/claude-code-haiku-5.5.md"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Anthropic/claude-code/claude-code-sonnet-4.6.md",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/claude-code-sonnet-4.6.md"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Anthropic/claude-code/claude-code-sonnet-5.5.md",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/claude-code-sonnet-5.5.md"
+  },
+  {
+   "repo": "jujumilk3/leaked-system-prompts",
+   "path": "claude-code-output-style-explanatory_20251007.md",
+   "url": "https://github.com/jujumilk3/leaked-system-prompts/blob/HEAD/claude-code-output-style-explanatory_20251007.md"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Anthropic/claude-code/agents/claude-code-guide.md",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/agents/claude-code-guide.md"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Anthropic/claude-code/claude-code-docs-assistant.md",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/claude-code-docs-assistant.md"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Anthropic/claude-code/claude-code-cloud-fable-5.1.md",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/claude-code-cloud-fable-5.1.md"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Anthropic/claude-code/claude-code-desktop-fable-5.md",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/claude-code-desktop-fable-5.md"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Anthropic/claude-code/claude-code-desktop-fable-5.1.md",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/claude-code-desktop-fable-5.1.md"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Anthropic/claude-code/claude-code-headless-fable-5.1.md",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/claude-code-headless-fable-5.1.md"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Anthropic/claude-code/skills/plugin-authoring/types/claude-code.d.ts",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/skills/plugin-authoring/types/claude-code.d.ts"
+  },
+  {
+   "repo": "x1xhlol/system-prompts-and-models-of-ai-tools",
+   "path": "Anthropic/Claude Code/Prompt.txt",
+   "url": "https://github.com/x1xhlol/system-prompts-and-models-of-ai-tools/blob/HEAD/Anthropic/Claude%20Code/Prompt.txt"
+  },
+  {
+   "repo": "x1xhlol/system-prompts-and-models-of-ai-tools",
+   "path": "Anthropic/Claude Code/Tools.json",
+   "url": "https://github.com/x1xhlol/system-prompts-and-models-of-ai-tools/blob/HEAD/Anthropic/Claude%20Code/Tools.json"
+  },
+  {
+   "repo": "x1xhlol/system-prompts-and-models-of-ai-tools",
+   "path": "VSCode Agent/claude-sonnet-4.txt",
+   "url": "https://github.com/x1xhlol/system-prompts-and-models-of-ai-tools/blob/HEAD/VSCode%20Agent/claude-sonnet-4.txt"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Anthropic/claude-code/agents/Plan.md",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/agents/Plan.md"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Anthropic/claude-code/agents/fork.md",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/agents/fork.md"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Anthropic/claude-code/commands/btw.md",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/commands/btw.md"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Anthropic/claude-code/agents/claude.md",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/agents/claude.md"
+  },
+  {
+   "repo": "x1xhlol/system-prompts-and-models-of-ai-tools",
+   "path": "Augment Code/claude-4-sonnet-tools.json",
+   "url": "https://github.com/x1xhlol/system-prompts-and-models-of-ai-tools/blob/HEAD/Augment%20Code/claude-4-sonnet-tools.json"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Anthropic/claude-code/agents/Explore.md",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/agents/Explore.md"
+  },
+  {
+   "repo": "anthropics/skills",
+   "path": "skills/claude-api/shared/error-codes.md",
+   "url": "https://github.com/anthropics/skills/blob/HEAD/skills/claude-api/shared/error-codes.md"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Anthropic/claude-code/agents/web-fetch.md",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/agents/web-fetch.md"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Anthropic/claude-code/commands/compact.md",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/commands/compact.md"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Anthropic/claude-code/skills/pdf/FORMS.md",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/skills/pdf/FORMS.md"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Anthropic/claude-code/skills/pdf/SKILL.md",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/skills/pdf/SKILL.md"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Anthropic/claude-code/skills/run/SKILL.md",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/skills/run/SKILL.md"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Anthropic/claude-code/prompts/plan-mode.md",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/prompts/plan-mode.md"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Anthropic/claude-code/skills/docs/SKILL.md",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/skills/docs/SKILL.md"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Anthropic/claude-code/skills/docx/SKILL.md",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/skills/docx/SKILL.md"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Anthropic/claude-code/skills/init/SKILL.md",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/skills/init/SKILL.md"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Anthropic/claude-code/skills/loop/SKILL.md",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/skills/loop/SKILL.md"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Anthropic/claude-code/skills/pptx/SKILL.md",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/skills/pptx/SKILL.md"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Anthropic/claude-code/skills/xlsx/SKILL.md",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/skills/xlsx/SKILL.md"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Anthropic/claude-code/skills/batch/SKILL.md",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/skills/batch/SKILL.md"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Anthropic/claude-code/skills/debug/SKILL.md",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/skills/debug/SKILL.md"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Anthropic/claude-code/agents/shared-notes.md",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/agents/shared-notes.md"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Anthropic/claude-code/skills/doctor/SKILL.md",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/skills/doctor/SKILL.md"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Anthropic/claude-code/skills/pdf/LICENSE.txt",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/skills/pdf/LICENSE.txt"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Anthropic/claude-code/skills/verify/SKILL.md",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/skills/verify/SKILL.md"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Meta/muse-code/skills/resume-claude/SKILL.md",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Meta/muse-code/skills/resume-claude/SKILL.md"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Anthropic/claude-code/prompts/advisor-tool.md",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/prompts/advisor-tool.md"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Anthropic/claude-code/skills/dataviz/SKILL.md",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/skills/dataviz/SKILL.md"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Anthropic/claude-code/skills/docx/LICENSE.txt",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/skills/docx/LICENSE.txt"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Anthropic/claude-code/skills/morning/SKILL.md",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/skills/morning/SKILL.md"
+  }
+ ],
+ "total": 345,
+ "errors": [],
+ "sources": {
+  "x1xhlol/system-prompts-and-models-of-ai-tools": "System prompts + tool definitions of AI coding agents & apps",
+  "elder-plinius/CL4R1T4S": "System prompts of major AI assistants",
+  "jujumilk3/leaked-system-prompts": "Leaked system prompts",
+  "asgeirtj/system_prompts_leaks": "System prompts of ChatGPT, Claude, Gemini, Grok…",
+  "anthropics/skills": "Anthropic's official Agent Skills"
+ }
+}

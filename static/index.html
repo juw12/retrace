@@ -5,184 +5,371 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ReverseAI — find the AI behind anything</title>
 <meta name="description" content="Find the AI, prompt, model, tools and settings behind an image, a text, a website or a chatbot API.">
-<meta name="theme-color" content="#0d1117">
-<link rel="manifest" href="/manifest.webmanifest">
-<link rel="icon" type="image/png" href="/icons/favicon.png">
-<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14171c" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/favicon.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <style>
   :root {
-    --bg: #0d1117; --panel: #151b23; --panel-2: #1b2230; --line: #2a3340;
-    --text: #e6edf3; --muted: #8b98a8; --accent: #8b6cff; --accent-strong: #6a4be6; --accent-2: #36c5f0;
-    --high: #3fb950; --medium: #d29922; --low: #58a6ff; --none: #6e7681; --bad: #f85149;
+    --bg: #f5f6f8; --surface: #ffffff; --surface-2: #f1f3f5; --line: #e1e4e8; --line-strong: #c9ced6;
+    --text: #15191f; --muted: #555f6d; --accent: #0f6b63; --accent-hover: #0b544e; --accent-soft: #e5f1ef;
+    --primary-bg: #0f6b63; --primary-fg: #ffffff;
+    --high: #166534; --high-bg: #e7f4eb; --medium: #8f4407; --medium-bg: #fcf1e4;
+    --low: #1d4ab4; --low-bg: #eaf0fc; --none: #555f6d; --none-bg: #edeff2;
+    --danger: #b42318; --danger-bg: #fdecea;
+    --radius: 10px;
+    --shadow: 0 1px 2px rgba(16, 24, 40, .04), 0 1px 3px rgba(16, 24, 40, .06);
+    --font: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+    --mono: "Cascadia Mono", "Cascadia Code", Consolas, ui-monospace, monospace;
   }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1115; --surface: #171a20; --surface-2: #1e2229; --line: #2a2f38; --line-strong: #3b414c;
+      --text: #e8ebf0; --muted: #a3acba; --accent: #4fc3b3; --accent-hover: #74d3c6; --accent-soft: #15302c;
+      --primary-bg: #3fb5a5; --primary-fg: #06201c;
+      --high: #7ee2a8; --high-bg: #13291d; --medium: #f4b56a; --medium-bg: #2d2013;
+      --low: #9bbcff; --low-bg: #172338; --none: #a3acba; --none-bg: #232831;
+      --danger: #ff9a90; --danger-bg: #351a17;
+      --shadow: none;
+    }
+  }
+
   * { box-sizing: border-box; }
-  html { background-color: var(--bg); }
-  body { margin: 0; background-color: var(--bg); background-image: radial-gradient(1200px 600px at 10% -10%, #221a4d 0%, var(--bg) 55%);
-         color: var(--text); font: 15px/1.5 "Segoe UI", system-ui, sans-serif; min-height: 100vh; }
-  header { max-width: 1100px; margin: 0 auto; padding: 28px 20px 8px; }
-  h1 { margin: 0; font-size: 30px; letter-spacing: -0.5px; }
-  h1 span { background: linear-gradient(90deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; color: transparent; }
-  header p { margin: 4px 0 16px; color: var(--muted); }
-  nav { display: flex; gap: 6px; flex-wrap: wrap; }
-  nav button { background: transparent; border: 1px solid var(--line); color: var(--muted); padding: 7px 14px;
-               border-radius: 999px; cursor: pointer; font: inherit; }
-  nav button.active { background: var(--accent-strong); border-color: var(--accent-strong); color: #fff; }
-  nav button:hover:not(.active) { color: var(--text); border-color: var(--muted); }
-  main { max-width: 1100px; margin: 0 auto; padding: 12px 20px 60px; }
-  .tab { display: none; } .tab.active { display: block; }
-  .panel, .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px; margin-bottom: 16px; }
-  .drop.dragging { border-color: var(--accent); box-shadow: 0 0 0 3px #8b6cff44; }
-  textarea, input[type=text], input[type=password], select {
-    width: 100%; background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 10px;
-    padding: 10px 12px; font: inherit; }
-  textarea { min-height: 140px; resize: vertical; }
-  label.field { display: block; margin: 10px 0 4px; color: var(--muted); font-size: 13px; }
-  .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 12px; }
-  .grow { flex: 1; }
-  button.primary, .file-btn { background: var(--accent-strong); color: #fff; border: 0; padding: 9px 18px; border-radius: 10px;
-                              cursor: pointer; font: inherit; font-weight: 600; }
-  .file-btn { background: var(--panel-2); border: 1px solid var(--line); font-weight: 500; }
-  button.ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); padding: 6px 12px;
-                 border-radius: 8px; cursor: pointer; font: inherit; font-size: 13px; }
-  button.primary:hover { filter: brightness(1.12); }
-  button.primary:disabled { opacity: .6; cursor: progress; }
-  .file-btn:hover { border-color: var(--muted); }
-  /* keyboard focus, visible everywhere */
+  html { background: var(--bg); }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.55 var(--font); -webkit-font-smoothing: antialiased; }
+  a { color: var(--accent); text-underline-offset: 3px; }
+  a:hover { color: var(--accent-hover); }
+  svg.icon { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-  textarea:focus-visible, input:focus-visible, select:focus-visible { outline-offset: 0; border-color: var(--accent); }
-  /* checkboxes as 52x32 switches: bigger tap target, same native input */
-  label.switch { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; }
-  input[type=checkbox] { appearance: none; -webkit-appearance: none; flex: none; position: relative; margin: 0;
-    width: 52px; height: 32px; border-radius: 999px; background: var(--panel-2); border: 1px solid var(--line);
-    cursor: pointer; transition: background .15s, border-color .15s; }
-  input[type=checkbox]::before { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px;
-    border-radius: 50%; background: var(--muted); transition: transform .15s, background .15s; }
-  input[type=checkbox]:checked { background: var(--accent-strong); border-color: var(--accent-strong); }
-  input[type=checkbox]:checked::before { transform: translateX(20px); background: #fff; }
-  @media (max-width: 600px) {
-    .row > button.primary { width: 100%; min-height: 44px; }
-    .row > .grow:empty { display: none; }
+  [hidden] { display: none !important; }
+
+  /* top bar */
+  .topbar { position: sticky; top: 0; z-index: 10; background: var(--surface); border-bottom: 1px solid var(--line); }
+  .topbar-inner { max-width: 1040px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; gap: 24px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 650; font-size: 16px; letter-spacing: -.01em; white-space: nowrap; }
+  .brand img { width: 28px; height: 28px; border-radius: 7px; }
+  .tabs { display: flex; gap: 2px; margin-left: auto; overflow-x: auto; scrollbar-width: none; }
+  .tabs button { background: none; border: 0; border-bottom: 2px solid transparent; color: var(--muted); font: inherit; font-weight: 550;
+    font-size: 14.5px; padding: 0 12px; min-height: 58px; cursor: pointer; white-space: nowrap; }
+  .tabs button:hover { color: var(--text); }
+  .tabs button[aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); }
+
+  main { max-width: 1040px; margin: 0 auto; padding: 36px 24px 56px; }
+  .page-head h1 { font-size: 28px; line-height: 1.2; letter-spacing: -.02em; margin: 0 0 8px; font-weight: 700; }
+  .page-head h2 { font-size: 22px; line-height: 1.25; letter-spacing: -.01em; margin: 0 0 6px; }
+  .page-head p { color: var(--muted); margin: 0 0 24px; max-width: 70ch; }
+
+  .panel, .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+
+  /* buttons */
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 0 16px;
+    border-radius: 8px; font: inherit; font-weight: 600; font-size: 14.5px; cursor: pointer; border: 1px solid var(--line-strong);
+    background: var(--surface); color: var(--text); text-decoration: none; white-space: nowrap; }
+  .btn:hover { background: var(--surface-2); color: var(--text); }
+  .btn.primary { background: var(--primary-bg); border-color: var(--primary-bg); color: var(--primary-fg); }
+  .btn.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); color: var(--primary-fg); }
+  .btn:disabled { opacity: .55; cursor: not-allowed; }
+  .btn.small { min-height: 32px; padding: 0 12px; font-size: 13.5px; font-weight: 550; }
+  .link-btn { background: none; border: 0; padding: 4px 0; min-height: 32px; color: var(--accent); font: inherit; cursor: pointer;
+    text-decoration: underline; text-underline-offset: 3px; }
+
+  /* composer */
+  .composer { padding: 16px; transition: border-color .15s, box-shadow .15s; }
+  .composer.dragging { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  textarea, input[type=text], input[type=password], select {
+    width: 100%; background: var(--surface); color: var(--text); border: 1px solid var(--line-strong); border-radius: 8px;
+    padding: 10px 12px; font: inherit; }
+  textarea { min-height: 132px; resize: vertical; line-height: 1.55; }
+  .composer textarea { border: 0; padding: 4px 4px 8px; min-height: 120px; background: transparent; }
+  .composer textarea:focus-visible { outline: none; }
+  .composer:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  input:focus-visible, select:focus-visible, textarea:focus-visible { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  ::placeholder { color: var(--muted); opacity: 1; }
+  .file-chip { display: flex; align-items: center; gap: 12px; padding: 8px 8px 8px 8px; margin: 4px 0 8px; border: 1px solid var(--line);
+    border-radius: 8px; background: var(--surface-2); }
+  .file-chip img { width: 48px; height: 48px; object-fit: cover; border-radius: 6px; background: var(--line); }
+  .file-chip .name { font-weight: 600; font-size: 14px; overflow-wrap: anywhere; }
+  .file-chip .meta { color: var(--muted); font-size: 13px; }
+  .composer-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding-top: 12px; border-top: 1px solid var(--line); }
+  .detected { display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--muted); margin-right: auto; min-height: 32px; }
+  .detected .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--line-strong); flex: none; }
+  .detected.ready .dot { background: var(--accent); }
+  .detected strong { color: var(--text); font-weight: 600; }
+  .options { display: flex; align-items: center; gap: 8px 16px; flex-wrap: wrap; margin-top: 14px; font-size: 14px; color: var(--muted); }
+
+  /* switch (native checkbox) */
+  label.switch { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; color: var(--text); }
+  input[type=checkbox] { appearance: none; -webkit-appearance: none; flex: none; position: relative; margin: 0; width: 44px; height: 32px;
+    cursor: pointer; background: transparent; border: 0; }
+  input[type=checkbox]::before { content: ""; position: absolute; left: 0; top: 6px; width: 44px; height: 20px; border-radius: 999px;
+    background: var(--line-strong); transition: background .15s; }
+  input[type=checkbox]::after { content: ""; position: absolute; left: 2px; top: 8px; width: 16px; height: 16px; border-radius: 50%;
+    background: var(--surface); box-shadow: 0 1px 2px rgba(0, 0, 0, .25); transition: transform .15s; }
+  input[type=checkbox]:checked::before { background: var(--primary-bg); }
+  input[type=checkbox]:checked::after { transform: translateX(24px); }
+
+  /* examples + how it works */
+  .examples { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 16px; font-size: 14px; color: var(--muted); }
+  .chip { border: 1px solid var(--line-strong); background: var(--surface); color: var(--text); border-radius: 999px; padding: 0 14px;
+    min-height: 32px; font: inherit; font-size: 13.5px; cursor: pointer; }
+  .chip:hover { border-color: var(--accent); color: var(--accent); }
+  .how { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 32px; }
+  .how .item { padding: 16px; }
+  .how .item svg.icon { color: var(--accent); width: 22px; height: 22px; }
+  .how h3 { font-size: 15px; margin: 10px 0 4px; }
+  .how p { margin: 0; font-size: 13.5px; color: var(--muted); }
+
+  /* results */
+  .results { margin-top: 28px; display: grid; gap: 16px; }
+  .result { padding: 22px; }
+  .result-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px 20px; flex-wrap: wrap; }
+  .eyebrow { font-size: 12px; font-weight: 650; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); }
+  .verdict { font-size: 22px; line-height: 1.3; margin: 4px 0 0; letter-spacing: -.01em; }
+  .badge { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; padding: 5px 10px; border-radius: 999px; white-space: nowrap; }
+  .badge::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+  .badge.high { color: var(--high); background: var(--high-bg); }
+  .badge.medium { color: var(--medium); background: var(--medium-bg); }
+  .badge.low { color: var(--low); background: var(--low-bg); }
+  .badge.none { color: var(--none); background: var(--none-bg); }
+  .summary { margin: 10px 0 0; color: var(--muted); max-width: 75ch; }
+  .preview { width: 72px; height: 72px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); }
+  .section-title { font-size: 12px; font-weight: 650; color: var(--muted); text-transform: uppercase; letter-spacing: .07em; margin: 22px 0 8px; }
+  .prompt-box { border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 8px; background: var(--surface-2); padding: 12px 14px; }
+  .prompt-box .label-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+  .prompt-box .label-row span { font-size: 13px; color: var(--muted); }
+  .prompt-text { white-space: pre-wrap; overflow-wrap: anywhere; font: 14px/1.6 var(--mono); margin: 0; }
+  .kv { display: grid; grid-template-columns: minmax(150px, 230px) 1fr; border-top: 1px solid var(--line); margin: 0; }
+  .kv dt, .kv dd { margin: 0; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 14px; overflow-wrap: anywhere; }
+  .kv dt { color: var(--muted); padding-right: 16px; }
+  .bars { display: grid; gap: 8px; }
+  .bar-row { display: grid; grid-template-columns: minmax(150px, 280px) 1fr; gap: 12px; align-items: center; font-size: 14px; }
+  .track { height: 6px; border-radius: 3px; background: var(--surface-2); overflow: hidden; }
+  .fill { height: 100%; background: var(--accent); border-radius: 3px; }
+  .meter { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; font-size: 14px; font-weight: 600; max-width: 520px; }
+  .meter .track { height: 8px; }
+  details { border-top: 1px solid var(--line); margin-top: 18px; }
+  details > summary { cursor: pointer; font-weight: 600; font-size: 14.5px; min-height: 44px; display: flex; align-items: center; gap: 8px; list-style: none; }
+  details > summary::-webkit-details-marker { display: none; }
+  details > summary::before { content: ""; width: 7px; height: 7px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted);
+    transform: rotate(-45deg); transition: transform .15s; margin: 0 4px 0 2px; }
+  details[open] > summary::before { transform: rotate(45deg); }
+  details > summary .count { color: var(--muted); font-weight: 500; }
+  .evidence { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 8px; }
+  .evidence li { display: grid; grid-template-columns: 76px 1fr; gap: 12px; font-size: 14px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+  .evidence li:last-child { border-bottom: 0; }
+  .strength { font-size: 12px; font-weight: 650; text-transform: uppercase; letter-spacing: .05em; padding-top: 2px; }
+  .strength.strong { color: var(--high); } .strength.medium { color: var(--medium); } .strength.weak { color: var(--low); }
+  .evidence .detail { color: var(--muted); font-size: 13px; overflow-wrap: anywhere; margin-top: 2px; }
+  pre { background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 12px; white-space: pre-wrap; overflow-wrap: anywhere;
+    max-height: 420px; overflow: auto; margin: 0 0 12px; font: 13px/1.5 var(--mono); color: var(--text); }
+  .note { display: flex; gap: 10px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; margin-top: 12px;
+    font-size: 13.5px; color: var(--muted); }
+  .note svg.icon { width: 18px; height: 18px; margin-top: 1px; }
+  .note.error { background: var(--danger-bg); border-color: transparent; color: var(--danger); }
+  .demo-banner { margin: -8px 0 20px; color: var(--text); background: var(--accent-soft); border-color: transparent; }
+  .result-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 18px; }
+  .loading { display: flex; align-items: center; gap: 12px; padding: 20px 22px; color: var(--muted); }
+  .spinner { width: 18px; height: 18px; border: 2px solid var(--line-strong); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .spinner { animation: none; } * { transition: none !important; } }
+
+  /* library */
+  .lib-list { list-style: none; margin: 0; padding: 0; }
+  .lib-list li { display: flex; align-items: center; justify-content: space-between; gap: 4px 16px; flex-wrap: wrap; border-bottom: 1px solid var(--line); padding: 4px 0; }
+  .lib-list button { background: none; border: 0; padding: 6px 0; min-height: 36px; color: var(--accent); font: inherit; font-size: 14px;
+    text-align: left; cursor: pointer; overflow-wrap: anywhere; }
+  .lib-list button:hover { text-decoration: underline; }
+  .lib-list .source { color: var(--muted); font-size: 13px; white-space: nowrap; }
+  .viewer-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 16px 0 8px; flex-wrap: wrap; }
+  .viewer-head strong { overflow-wrap: anywhere; }
+
+  /* forms */
+  .form { padding: 22px; display: grid; gap: 16px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .field label { display: block; font-size: 13.5px; font-weight: 600; margin-bottom: 6px; }
+  .field .hint { font-size: 13px; color: var(--muted); margin-top: 6px; }
+  .form-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .status { font-size: 13.5px; color: var(--high); }
+
+  footer.site { max-width: 1040px; margin: 0 auto; padding: 20px 24px 32px; color: var(--muted); font-size: 13px; border-top: 1px solid var(--line);
+    display: flex; justify-content: space-between; gap: 8px 24px; flex-wrap: wrap; }
+
+  @media (max-width: 860px) {
+    .how { grid-template-columns: repeat(2, 1fr); }
   }
-  .muted { color: var(--muted); } .small { font-size: 13px; }
-  .card-head { display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
-  .card h2 { margin: 0; font-size: 17px; } .card h3 { margin: 18px 0 8px; font-size: 14px; color: var(--muted);
-            text-transform: uppercase; letter-spacing: .6px; }
-  .badge { padding: 6px 12px; border-radius: 999px; font-weight: 600; border: 1px solid; }
-  .badge small { font-weight: 400; opacity: .8; }
-  .badge.high { color: var(--high); border-color: var(--high); background: #3fb95018; }
-  .badge.medium { color: var(--medium); border-color: var(--medium); background: #d2992218; }
-  .badge.low { color: var(--low); border-color: var(--low); background: #58a6ff18; }
-  .badge.none { color: var(--none); border-color: var(--none); }
-  .bars div.bar-row { display: grid; grid-template-columns: 260px 1fr 40px; gap: 10px; align-items: center; margin: 4px 0; }
-  .bar { height: 8px; border-radius: 4px; background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
-  table { width: 100%; border-collapse: collapse; font-size: 14px; }
-  td { padding: 6px 8px; border-top: 1px solid var(--line); vertical-align: top; word-break: break-word; }
-  td:first-child { color: var(--muted); width: 32%; }
-  pre { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 12px; white-space: pre-wrap;
-        word-break: break-word; max-height: 420px; overflow: auto; margin: 6px 0; font: 13px/1.45 Consolas, monospace; }
-  .prompt pre { border-color: #8b6cff88; font-size: 14px; }
-  .chip { display: inline-block; font-size: 11px; padding: 1px 8px; border-radius: 999px; border: 1px solid; margin-right: 6px; }
-  .chip.strong { color: var(--high); } .chip.medium { color: var(--medium); } .chip.weak { color: var(--low); }
-  details { margin: 8px 0; } summary { cursor: pointer; color: var(--muted); }
-  .note { background: var(--panel-2); border-left: 3px solid var(--medium); padding: 8px 12px; border-radius: 6px;
-          margin: 8px 0; font-size: 13px; color: var(--muted); }
-  .note.bad { border-color: var(--bad); color: #ffb4ae; }
-  .loading { color: var(--muted); padding: 14px; } .loading::after { content: " ⏳"; }
-  .preview { max-height: 140px; border-radius: 10px; border: 1px solid var(--line); }
-  .lib-row { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0; border-top: 1px solid var(--line); }
-  .lib-row button { background: none; border: 0; color: var(--accent-2); cursor: pointer; text-align: left; font: inherit;
-    padding: 6px 0; min-height: 32px; overflow-wrap: anywhere; }
-  .lib-row .meta { white-space: nowrap; align-self: center; }
-  @media (max-width: 600px) { .lib-row { flex-direction: column; gap: 0; } .lib-row .meta { align-self: flex-start; } }
-  a { color: var(--accent-2); }
-  .hint-list { margin: 8px 0 0; padding-left: 18px; color: var(--muted); font-size: 13px; }
+  @media (max-width: 640px) {
+    .topbar-inner { flex-wrap: wrap; gap: 0; padding: 0 16px; }
+    .brand { min-height: 52px; }
+    .tabs { margin-left: 0; width: 100%; border-top: 1px solid var(--line); }
+    .tabs button { flex: 1; min-height: 46px; padding: 0 8px; font-size: 14px; }
+    main { padding: 24px 16px 40px; }
+    .page-head h1 { font-size: 24px; }
+    .composer-bar .btn { flex: 1; min-height: 44px; }
+    .detected { width: 100%; }
+    .how { grid-template-columns: 1fr; }
+    .form-grid { grid-template-columns: 1fr; }
+    .kv { grid-template-columns: 1fr; }
+    .kv dt { border-bottom: 0; padding-bottom: 0; }
+    .bar-row { grid-template-columns: 1fr; gap: 4px; }
+    .form-actions .btn { width: 100%; min-height: 44px; }
+  }
 </style>
 </head>
 <body>
-<header>
-  <h1>Reverse<span>AI</span></h1>
-  <p>Find the AI, prompt, model, tools &amp; settings behind an image, a text, a website or a chatbot API.</p>
-  <nav>
-    <button data-tab="reverse" class="active">Reverse anything</button>
-    <button data-tab="probe">Endpoint probe</button>
-    <button data-tab="library">Prompt &amp; skills library</button>
-    <button data-tab="settings">Settings (LLM)</button>
-  </nav>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></symbol>
+  <symbol id="i-text" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M5 4h10a4 4 0 0 1 4 4v12H9a4 4 0 0 1-4-4V4z"/><path d="M5 16a4 4 0 0 1 4-4h10"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3l9.5 17h-19L12 3z"/><path d="M12 10v4M12 17v.5"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></symbol>
+</svg>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><img src="icons/icon-192.png" alt="" width="28" height="28">ReverseAI</div>
+    <nav class="tabs" role="tablist" aria-label="Sections">
+      <button role="tab" id="tab-btn-analyze" aria-controls="tab-analyze" aria-selected="true" data-tab="analyze">Analyze</button>
+      <button role="tab" id="tab-btn-library" aria-controls="tab-library" aria-selected="false" data-tab="library">Prompt library</button>
+      <button role="tab" id="tab-btn-probe" aria-controls="tab-probe" aria-selected="false" data-tab="probe">API test</button>
+      <button role="tab" id="tab-btn-settings" aria-controls="tab-settings" aria-selected="false" data-tab="settings">Settings</button>
+    </nav>
+  </div>
 </header>
 
 <main>
-  <section id="tab-reverse" class="tab active">
-    <div id="drop" class="panel drop">
-      <textarea id="input" placeholder="Paste AI-looking text, a website URL (https://…), or an AI app name (cursor, v0, claude code, perplexity…).&#10;Or drop / paste an image here (PNG, JPEG, WebP)."></textarea>
-      <div class="row">
-        <label class="file-btn" id="file-label" tabindex="0" role="button" aria-controls="file">Choose image…<input type="file" id="file" accept="image/*" hidden></label>
-        <span id="file-name" class="muted small"></span>
-        <span class="grow"></span>
-        <label class="small switch"><input type="checkbox" id="use-llm"> Also ask my LLM to reverse-engineer the prompt</label>
-        <button id="go" class="primary">Reverse</button>
-      </div>
-      <ul class="hint-list">
-        <li><b>Image</b> → generator, exact prompt / negative prompt / seed / model / LoRAs from metadata, C2PA Content Credentials.</li>
-        <li><b>Text</b> → which chatbot wrote it (citation tokens, self-ID, style), hidden Unicode payloads, AI-likelihood.</li>
-        <li><b>URL</b> → AI chat widgets, AI APIs, AI site-builders, llms.txt, AI-crawler rules, agent cards &amp; skills, leaked prompts.</li>
-        <li><b>App name</b> → leaked system prompts, tool definitions and skills from public GitHub collections.</li>
-      </ul>
+  <section id="tab-analyze" role="tabpanel" aria-labelledby="tab-btn-analyze">
+    <div class="page-head">
+      <h1>Find the AI behind anything</h1>
+      <p>Paste text, a website address or an AI app name, or add an image. ReverseAI tells you which AI made it and recovers the prompt, model and settings when they are still there.</p>
     </div>
-    <div id="results" aria-live="polite"></div>
-  </section>
 
-  <section id="tab-probe" class="tab">
-    <div class="panel">
-      <p class="muted small">Fingerprints the model behind any OpenAI-compatible <code>/chat/completions</code> API and tests whether it reveals its system prompt and tools. Only for APIs you own or may test.</p>
-      <label class="field">Base URL</label><input type="text" id="probe-base">
-      <div class="row">
-        <div class="grow"><label class="field">API key</label><input type="password" id="probe-key"></div>
-        <div class="grow"><label class="field">Model</label><input type="text" id="probe-model"></div>
+    <div class="panel composer" id="drop">
+      <textarea id="input" aria-label="Text, website address or AI app name to analyze"
+        placeholder="Paste AI-written text, a website like https://example.com, or an app name like cursor. You can also drop or paste an image here."></textarea>
+      <div class="file-chip" id="file-chip" hidden>
+        <img id="file-thumb" alt="Selected image preview">
+        <div>
+          <div class="name" id="file-name"></div>
+          <div class="meta" id="file-meta"></div>
+        </div>
+        <button class="btn small" id="file-remove" type="button" style="margin-left:auto">Remove</button>
       </div>
-      <label class="field">Optional: paste YOUR app's system prompt to measure how much of it leaks</label>
-      <textarea id="probe-system" style="min-height:90px"></textarea>
-      <div class="row">
-        <label class="small switch"><input type="checkbox" id="probe-ok"> I own this endpoint or am authorized to test it</label>
-        <span class="grow"></span>
-        <button id="probe-go" class="primary">Run fingerprint</button>
+      <div class="composer-bar">
+        <div class="detected" id="detected" aria-live="polite"><span class="dot"></span><span id="detected-text">Paste something or add an image to begin.</span></div>
+        <label class="btn" id="file-label" tabindex="0" role="button" aria-controls="file">
+          <svg class="icon" aria-hidden="true"><use href="#i-upload"/></svg>Add image
+          <input type="file" id="file" accept="image/png,image/jpeg,image/webp" hidden>
+        </label>
+        <button class="btn primary" id="go" type="button" disabled>Analyze</button>
       </div>
     </div>
-    <div id="probe-results" aria-live="polite"></div>
-  </section>
 
-  <section id="tab-library" class="tab">
-    <div class="panel">
-      <div class="row" style="margin-top:0">
-        <input type="text" id="lib-q" class="grow" placeholder="AI app or model: cursor, claude code, v0, lovable, perplexity, grok, chatgpt…">
-        <button id="lib-go" class="primary">Search</button>
-      </div>
-      <p class="muted small" id="lib-sources"></p>
+    <div class="options">
+      <label class="switch"><input type="checkbox" id="use-llm"> Also ask my AI model for a best guess of the prompt</label>
+      <button class="link-btn" type="button" data-goto="settings" id="llm-setup">Set up a model</button>
     </div>
-    <div id="lib-results" aria-live="polite"></div>
+
+    <div class="examples">
+      <span>Try an example:</span>
+      <button class="chip" type="button" data-example="text">AI-written text</button>
+      <button class="chip" type="button" data-example="site">A website</button>
+      <button class="chip" type="button" data-example="app">An AI app name</button>
+    </div>
+
+    <div class="how" id="how">
+      <div class="card item"><svg class="icon" aria-hidden="true"><use href="#i-image"/></svg><h3>Images</h3>
+        <p>Generator, exact prompt, seed, model and LoRAs from file metadata and Content Credentials.</p></div>
+      <div class="card item"><svg class="icon" aria-hidden="true"><use href="#i-text"/></svg><h3>Text</h3>
+        <p>Which chatbot wrote it, from citation traces, self-identification, style and hidden characters.</p></div>
+      <div class="card item"><svg class="icon" aria-hidden="true"><use href="#i-globe"/></svg><h3>Websites</h3>
+        <p>AI chat widgets, AI APIs, AI site builders, llms.txt, AI crawler rules and agent skills.</p></div>
+      <div class="card item"><svg class="icon" aria-hidden="true"><use href="#i-book"/></svg><h3>AI apps</h3>
+        <p>Published system prompts, tool definitions and skills from public GitHub collections.</p></div>
+    </div>
+
+    <div class="results" id="results" aria-live="polite"></div>
   </section>
 
-  <section id="tab-settings" class="tab">
-    <div class="panel">
-      <p class="muted small">Optional. Used for "Ask my LLM" (visual / textual reverse-prompt) and as the default for Endpoint probe.
-        Any OpenAI-compatible API works. The key is kept in this browser's localStorage and only sent to your local ReverseAI server, which forwards it to the provider.</p>
-      <label class="field">Preset</label>
-      <select id="preset">
-        <option value="">— choose —</option>
-        <option value="https://api.openai.com/v1|gpt-4o-mini">OpenAI</option>
-        <option value="https://openrouter.ai/api/v1|openai/gpt-4o-mini">OpenRouter</option>
-        <option value="https://generativelanguage.googleapis.com/v1beta/openai|gemini-2.5-flash">Google Gemini</option>
-        <option value="https://api.anthropic.com/v1|claude-sonnet-4-5">Anthropic (OpenAI-compatible)</option>
-        <option value="https://api.groq.com/openai/v1|llama-3.3-70b-versatile">Groq</option>
-        <option value="http://localhost:11434/v1|llava">Ollama (local, free)</option>
-        <option value="http://localhost:1234/v1|local-model">LM Studio (local, free)</option>
-      </select>
-      <label class="field">Base URL</label><input type="text" id="set-base">
-      <label class="field">API key (blank for local models)</label><input type="password" id="set-key">
-      <label class="field">Model (must support images for image reverse-prompt)</label><input type="text" id="set-model">
-      <div class="row"><button id="set-save" class="primary">Save</button><span id="set-status" class="muted small"></span></div>
+  <section id="tab-library" role="tabpanel" aria-labelledby="tab-btn-library" hidden>
+    <div class="page-head">
+      <h2>Prompt library</h2>
+      <p>Search public collections of leaked system prompts, tool definitions and agent skills for an AI product or model.</p>
+    </div>
+    <div class="panel form">
+      <div class="field">
+        <label for="lib-q">AI app or model</label>
+        <input type="text" id="lib-q" placeholder="For example: cursor, claude code, v0, perplexity, grok">
+        <div class="hint" id="lib-sources"></div>
+      </div>
+      <div class="form-actions"><button class="btn primary" id="lib-go" type="button">Search</button></div>
+    </div>
+    <div class="results" id="lib-results" aria-live="polite"></div>
+  </section>
+
+  <section id="tab-probe" role="tabpanel" aria-labelledby="tab-btn-probe" hidden>
+    <div class="page-head">
+      <h2>API test</h2>
+      <p>Identify the model behind an OpenAI-compatible chat API and check whether it reveals its instructions and tools. Use it only on APIs you own or may test.</p>
+    </div>
+    <div class="panel form">
+      <div class="field">
+        <label for="probe-base">API base URL</label>
+        <input type="text" id="probe-base" placeholder="https://api.openai.com/v1">
+      </div>
+      <div class="form-grid">
+        <div class="field"><label for="probe-key">API key</label><input type="password" id="probe-key" autocomplete="off"></div>
+        <div class="field"><label for="probe-model">Model</label><input type="text" id="probe-model" placeholder="gpt-4o-mini"></div>
+      </div>
+      <div class="field">
+        <label for="probe-system">Your app's system prompt (optional)</label>
+        <textarea id="probe-system" style="min-height:96px" placeholder="Paste it to measure how much of it the API gives away."></textarea>
+      </div>
+      <label class="switch"><input type="checkbox" id="probe-ok"> I own this API or have permission to test it</label>
+      <div class="form-actions"><button class="btn primary" id="probe-go" type="button">Run test</button></div>
+    </div>
+    <div class="results" id="probe-results" aria-live="polite"></div>
+  </section>
+
+  <section id="tab-settings" role="tabpanel" aria-labelledby="tab-btn-settings" hidden>
+    <div class="page-head">
+      <h2>Settings</h2>
+      <p>Optional. Connect any OpenAI-compatible model to get a best-guess prompt for files with no metadata. Local models such as Ollama and LM Studio work without a key.</p>
+    </div>
+    <div class="panel form">
+      <div class="field">
+        <label for="preset">Provider</label>
+        <select id="preset">
+          <option value="">Choose a provider to fill in the fields</option>
+          <option value="https://api.openai.com/v1|gpt-4o-mini">OpenAI</option>
+          <option value="https://openrouter.ai/api/v1|openai/gpt-4o-mini">OpenRouter</option>
+          <option value="https://generativelanguage.googleapis.com/v1beta/openai|gemini-2.5-flash">Google Gemini</option>
+          <option value="https://api.anthropic.com/v1|claude-sonnet-4-5">Anthropic</option>
+          <option value="https://api.groq.com/openai/v1|llama-3.3-70b-versatile">Groq</option>
+          <option value="http://localhost:11434/v1|llava">Ollama (local, free)</option>
+          <option value="http://localhost:1234/v1|local-model">LM Studio (local, free)</option>
+        </select>
+      </div>
+      <div class="field"><label for="set-base">API base URL</label><input type="text" id="set-base"></div>
+      <div class="form-grid">
+        <div class="field"><label for="set-key">API key</label><input type="password" id="set-key" autocomplete="off">
+          <div class="hint">Leave empty for local models.</div></div>
+        <div class="field"><label for="set-model">Model</label><input type="text" id="set-model">
+          <div class="hint">Must accept images to guess prompts from pictures.</div></div>
+      </div>
+      <div class="form-actions"><button class="btn primary" id="set-save" type="button">Save settings</button><span class="status" id="set-status" aria-live="polite"></span></div>
+      <div class="note"><svg class="icon" aria-hidden="true"><use href="#i-info"/></svg><span>Your key stays in this app on this computer. It is only sent to the provider you choose, when you ask for a model guess.</span></div>
     </div>
   </section>
 </main>
+
+<footer class="site">
+  <span>ReverseAI runs on your computer. Only the lookups you start leave it.</span>
+  <span>Results are evidence, not proof. <a href="https://github.com/juw12/reverse-ai" target="_blank" rel="noopener">Source on GitHub</a></span>
+</footer>
 
 <script>
 const $ = (selector) => document.querySelector(selector);
@@ -201,14 +388,30 @@ function el(tag, attributes = {}, ...children) {
   return node;
 }
 
-/* ---------- tabs & settings ---------- */
-document.querySelectorAll("nav button").forEach((button) => {
-  button.addEventListener("click", () => {
-    document.querySelectorAll("nav button").forEach((b) => b.classList.toggle("active", b === button));
-    document.querySelectorAll(".tab").forEach((t) => t.classList.toggle("active", t.id === "tab-" + button.dataset.tab));
-  });
-});
+function icon(name) {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("class", "icon");
+  svg.setAttribute("aria-hidden", "true");
+  const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
+  use.setAttribute("href", "#i-" + name);
+  svg.append(use);
+  return svg;
+}
 
+/* ---------- tabs ---------- */
+function showTab(name) {
+  document.querySelectorAll(".tabs button").forEach((button) => {
+    button.setAttribute("aria-selected", String(button.dataset.tab === name));
+  });
+  document.querySelectorAll("[role=tabpanel]").forEach((panel) => {
+    panel.hidden = panel.id !== "tab-" + name;
+  });
+  window.scrollTo({ top: 0 });
+}
+document.querySelectorAll(".tabs button").forEach((button) => button.addEventListener("click", () => showTab(button.dataset.tab)));
+document.querySelectorAll("[data-goto]").forEach((button) => button.addEventListener("click", () => showTab(button.dataset.goto)));
+
+/* ---------- settings ---------- */
 function llmConfig() {
   return JSON.parse(localStorage.getItem("reverseai.llm") || "{}");
 }
@@ -218,9 +421,10 @@ function loadSettings() {
   $("#set-base").value = config.base_url || "https://api.openai.com/v1";
   $("#set-key").value = config.api_key || "";
   $("#set-model").value = config.model || "";
-  $("#probe-base").value = $("#set-base").value;
-  $("#probe-key").value = $("#set-key").value;
-  $("#probe-model").value = $("#set-model").value;
+  $("#probe-base").value = config.base_url || "";
+  $("#probe-key").value = config.api_key || "";
+  $("#probe-model").value = config.model || "";
+  $("#llm-setup").textContent = config.model ? `Using ${config.model}` : "Set up a model";
 }
 
 $("#preset").addEventListener("change", (event) => {
@@ -237,168 +441,318 @@ $("#set-save").addEventListener("click", () => {
     model: $("#set-model").value.trim(),
   }));
   loadSettings();
-  $("#set-status").textContent = "Saved ✓";
+  $("#set-status").textContent = "Saved";
+  setTimeout(() => { $("#set-status").textContent = ""; }, 2500);
 });
 
 /* ---------- API ---------- */
+const DEMO = location.hostname.endsWith("github.io") || new URLSearchParams(location.search).has("demo");
+const DEMO_FILES = { text: "demo/text.json", site: "demo/site.json", library: "demo/library.json" };
+
+async function demoApi(path, body) {
+  if (path.startsWith("/api/library/file")) {
+    const params = new URLSearchParams(path.split("?")[1]);
+    const repo = params.get("repo");
+    const filePath = params.get("path");
+    const response = await fetch(`https://raw.githubusercontent.com/${repo}/HEAD/${filePath.split("/").map(encodeURIComponent).join("/")}`);
+    if (!response.ok) throw new Error("Could not load this file from GitHub right now.");
+    return { repo, path: filePath, content: await response.text() };
+  }
+  const query = path.startsWith("/api/library/search") ? decodeURIComponent(path.split("q=")[1] || "") : null;
+  let key = null;
+  if (path === "/api/text" && body && body.text === EXAMPLES.text) key = "text";
+  if (path === "/api/site" && body && body.url === EXAMPLES.site) key = "site";
+  if (query === EXAMPLES.app) key = "library";
+  if (query !== null && query !== EXAMPLES.app) return { query, results: [], total: 0, errors: [] };
+  if (!key) {
+    throw new Error("The online demo only runs the three examples. Download ReverseAI (free, runs on your computer) to analyze your own text, images, websites and APIs.");
+  }
+  const response = await fetch(DEMO_FILES[key]);
+  return response.json();
+}
+
 async function api(path, body) {
+  if (DEMO) return demoApi(path, body);
   const options = body === undefined ? {} : {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   };
-  const response = await fetch(path, options);
+  let response;
+  try {
+    response = await fetch(path, options);
+  } catch (error) {
+    throw new Error("ReverseAI is not running. Start it again with python app.py.");
+  }
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || response.statusText);
   return data;
 }
 
 function loading(container, message) {
-  const node = el("div", { class: "loading" }, message);
+  const node = el("div", { class: "card loading", role: "status" }, el("span", { class: "spinner" }), message);
   container.append(node);
   return node;
 }
 
 function errorBox(error) {
-  return el("div", { class: "note bad" }, String(error.message || error));
+  return el("div", { class: "note error", role: "alert" }, icon("alert"), el("span", {}, String(error.message || error)));
 }
 
-/* ---------- report rendering ---------- */
-function renderReport(title, report, extra) {
-  const card = el("div", { class: "card" });
-  const verdict = report.verdict;
-  card.append(el("div", { class: "card-head" },
-    el("h2", {}, title),
-    el("span", { class: "badge " + verdict.confidence }, verdict.label,
-       el("small", {}, ` · ${verdict.confidence} confidence`))));
-  if (extra) card.append(extra);
+function noteBox(text) {
+  return el("div", { class: "note" }, icon("info"), el("span", {}, text));
+}
 
-  if (report.candidates.length > 1) {
-    const top = report.candidates[0].score;
-    card.append(el("h3", {}, "Candidates"), el("div", { class: "bars" }, report.candidates.slice(0, 6).map((c) =>
-      el("div", { class: "bar-row" }, el("span", {}, c.name),
-         el("div", { class: "bar", style: `width:${Math.max(4, (100 * c.score) / top)}%` }),
-         el("span", { class: "muted small" }, c.score)))));
-  }
+/* ---------- result rendering ---------- */
+const CONFIDENCE = { high: "High confidence", medium: "Medium confidence", low: "Low confidence", none: "No match" };
+const KIND_LABEL = { image: "Image", text: "Text", site: "Website", endpoint: "API" };
+const NONE_SUMMARY = {
+  image: "This file carries no AI metadata. That is common for screenshots and re-uploads, so it does not prove a person made it.",
+  text: "No clear sign of a specific AI in this text.",
+  site: "No AI tools are visible in this page's code. AI running on the site's server cannot be seen from outside.",
+  endpoint: "The model family could not be identified from the answers.",
+};
+
+function summarize(report) {
+  if (report.verdict.confidence === "none") return NONE_SUMMARY[report.kind] || "";
+  const main = report.evidence.find((item) => item.candidate && item.strength === "strong")
+    || report.evidence.find((item) => item.candidate);
+  return main ? `Main signal: ${main.signal}.` : "";
+}
+
+function copyButton(textValue, label = "Copy") {
+  const button = el("button", { class: "btn small", type: "button" }, label);
+  button.addEventListener("click", async () => {
+    await navigator.clipboard.writeText(textValue);
+    button.textContent = "Copied";
+    setTimeout(() => { button.textContent = label; }, 1800);
+  });
+  return button;
+}
+
+function sectionTitle(text) {
+  return el("div", { class: "section-title" }, text);
+}
+
+function renderReport(report, extra) {
+  const card = el("article", { class: "card result" });
+  const head = el("div", { class: "result-head" },
+    el("div", {},
+      el("div", { class: "eyebrow" }, `${KIND_LABEL[report.kind] || "Result"} analysis`),
+      el("h2", { class: "verdict" }, report.verdict.label)),
+    el("span", { class: "badge " + report.verdict.confidence }, CONFIDENCE[report.verdict.confidence]));
+  if (extra) head.prepend(extra);
+  card.append(head);
+  const summary = summarize(report);
+  if (summary) card.append(el("p", { class: "summary" }, summary));
 
   if (report.prompt && report.prompt.positive) {
-    const box = el("div", { class: "prompt" }, el("h3", {}, "Recovered prompt"),
-      el("div", { class: "muted small" }, "Source: " + report.prompt.source),
-      el("pre", {}, report.prompt.positive), copyButton(report.prompt.positive));
+    card.append(sectionTitle("Recovered prompt"));
+    card.append(el("div", { class: "prompt-box" },
+      el("div", { class: "label-row" }, el("span", {}, "Source: " + report.prompt.source), copyButton(report.prompt.positive, "Copy prompt")),
+      el("p", { class: "prompt-text" }, report.prompt.positive)));
     if (report.prompt.negative) {
-      box.append(el("h3", {}, "Negative prompt"), el("pre", {}, report.prompt.negative));
+      card.append(sectionTitle("Negative prompt"));
+      card.append(el("div", { class: "prompt-box" }, el("p", { class: "prompt-text" }, report.prompt.negative)));
     }
-    card.append(box);
   }
 
-  if (report.llm) card.append(llmBlock(report.llm));
-  if (report.llm_error) card.append(el("div", { class: "note bad" }, "LLM step failed: " + report.llm_error));
+  if (report.llm) {
+    card.append(sectionTitle("Model's best guess"));
+    const guess = el("dl", { class: "kv" });
+    for (const [key, value] of Object.entries(report.llm)) {
+      const textValue = Array.isArray(value) ? value.join("; ") : typeof value === "string" ? value : JSON.stringify(value);
+      guess.append(el("dt", {}, key.replace(/_/g, " ")), el("dd", {}, textValue));
+    }
+    card.append(guess);
+  }
+  if (report.llm_error) card.append(errorBox("Model guess failed: " + report.llm_error));
 
-  const details = Object.entries(report.details || {});
+  if (report.candidates.length > 1) {
+    card.append(sectionTitle("Other candidates"));
+    const top = report.candidates[0].score;
+    card.append(el("div", { class: "bars" }, report.candidates.slice(0, 5).map((candidate) =>
+      el("div", { class: "bar-row" }, el("span", {}, candidate.name),
+        el("div", { class: "track" }, el("div", { class: "fill", style: `width:${Math.max(4, (100 * candidate.score) / top)}%` }))))));
+  }
+
+  const kvList = (entries) => el("dl", { class: "kv" }, entries.flatMap(([key, value]) => [el("dt", {}, key), el("dd", {}, String(value))]));
+  let details = Object.entries(report.details || {});
+  if (report.kind === "text") {
+    const keyFacts = ["Hidden / invisible characters"];
+    if (typeof report.ai_likelihood === "number") {
+      card.append(sectionTitle("AI-likelihood (heuristic)"));
+      card.append(el("div", { class: "meter" },
+        el("div", { class: "track" }, el("div", { class: "fill", style: `width:${Math.max(2, report.ai_likelihood)}%` })),
+        el("span", {}, `${report.ai_likelihood} / 100`)));
+    }
+    const facts = details.filter(([key]) => keyFacts.includes(key));
+    const stats = details.filter(([key]) => !keyFacts.includes(key) && key !== "Heuristic AI-likelihood");
+    if (facts.length) {
+      card.append(sectionTitle("Details"));
+      card.append(kvList(facts));
+    }
+    details = [];
+    if (stats.length) card.append(el("details", {}, el("summary", {}, "Text statistics"), kvList(stats)));
+  }
   if (details.length) {
-    card.append(el("h3", {}, "Details"), el("table", {}, details.map(([key, value]) =>
-      el("tr", {}, el("td", {}, key), el("td", {}, String(value))))));
+    card.append(sectionTitle("Details"));
+    card.append(kvList(details));
   }
 
   for (const section of report.sections || []) {
-    card.append(el("details", { open: "" }, el("summary", {}, section.title), el("pre", {}, section.body)));
+    card.append(el("details", {}, el("summary", {}, section.title), el("pre", {}, section.body)));
   }
 
   if (report.evidence.length) {
-    card.append(el("h3", {}, "Evidence"), el("table", {}, report.evidence.map((item) =>
-      el("tr", {},
-         el("td", {}, el("span", { class: "chip " + item.strength }, item.strength), item.candidate || "—"),
-         el("td", {}, item.signal, item.detail ? el("div", { class: "muted small" }, item.detail) : null)))));
+    card.append(el("details", {},
+      el("summary", {}, "Why we think so", el("span", { class: "count" }, `${report.evidence.length} signals`)),
+      el("ul", { class: "evidence" }, report.evidence.map((item) =>
+        el("li", {},
+          el("span", { class: "strength " + item.strength }, item.strength),
+          el("div", {}, item.signal + (item.candidate ? ` (${item.candidate})` : ""),
+            item.detail ? el("div", { class: "detail" }, item.detail) : null))))));
   }
 
-  for (const note of report.notes || []) card.append(el("div", { class: "note" }, note));
+  for (const note of report.notes || []) card.append(noteBox(note));
+
   if (report.raw && Object.keys(report.raw).length) {
     card.append(el("details", {}, el("summary", {}, "Raw data"), el("pre", {}, JSON.stringify(report.raw, null, 2))));
   }
-  card.append(el("div", { class: "row" }, el("button", { class: "ghost", onclick: () => download(report) }, "Download JSON report")));
+  card.append(el("div", { class: "result-actions" },
+    copyButton(`${report.verdict.label} (${CONFIDENCE[report.verdict.confidence]}). ${summary}`, "Copy summary"),
+    el("button", { class: "btn small", type: "button", onclick: () => download(report) }, "Download report")));
   return card;
-}
-
-function llmBlock(result) {
-  const box = el("div", {}, el("h3", {}, "LLM reverse-engineering (best guess, not proof)"));
-  for (const [key, value] of Object.entries(result)) {
-    const text = typeof value === "string" ? value : JSON.stringify(value, null, 2);
-    box.append(el("div", { class: "muted small" }, key.replace(/_/g, " ")), el("pre", {}, text));
-  }
-  return box;
-}
-
-function copyButton(text) {
-  return el("button", { class: "ghost", onclick: (event) => {
-    navigator.clipboard.writeText(text);
-    event.target.textContent = "Copied ✓";
-  } }, "Copy");
 }
 
 function download(report) {
   const blob = new Blob([JSON.stringify(report, null, 2)], { type: "application/json" });
-  const link = el("a", { href: URL.createObjectURL(blob), download: `reverseai-${report.kind}-report.json` });
-  link.click();
+  el("a", { href: URL.createObjectURL(blob), download: `reverseai-${report.kind}-report.json` }).click();
 }
 
 /* ---------- library ---------- */
 async function librarySection(query, title) {
-  const card = el("div", { class: "card" }, el("h2", {}, title || `Leaked system prompts, tools & skills matching “${query}”`));
+  const card = el("article", { class: "card result" },
+    el("div", { class: "eyebrow" }, "Prompt library"),
+    el("h2", { class: "verdict" }, title || `Results for "${query}"`));
   const data = await api("/api/library/search?q=" + encodeURIComponent(query));
-  for (const error of data.errors) card.append(el("div", { class: "note bad" }, error));
+  for (const problem of data.errors) card.append(errorBox(problem));
   if (!data.results.length) {
-    card.append(el("p", { class: "muted" }, "No matches in the public collections."));
+    card.append(el("p", { class: "summary" }, "Nothing published for this name in the public collections. Try a shorter or different name."));
     return card;
   }
-  card.append(el("p", { class: "muted small" }, `${data.total} files found${data.total > data.results.length ? ` (showing ${data.results.length})` : ""}. Click one to read it.`));
+  const shown = data.results.length;
+  card.append(el("p", { class: "summary" }, `${data.total} files found${data.total > shown ? `, showing the first ${shown}` : ""}. Select one to read it here.`));
+  const viewerHead = el("div", { class: "viewer-head" });
   const viewer = el("pre", {});
+  viewerHead.hidden = true;
   viewer.hidden = true;
+  const list = el("ul", { class: "lib-list" });
   for (const item of data.results) {
     const open = async () => {
+      viewerHead.hidden = false;
       viewer.hidden = false;
-      viewer.textContent = "Loading…";
-      viewer.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      viewerHead.replaceChildren(el("strong", {}, item.path), el("a", { href: item.url, target: "_blank", rel: "noopener" }, "Open on GitHub"));
+      viewer.textContent = "Loading...";
+      viewerHead.scrollIntoView({ behavior: "smooth", block: "start" });
       try {
         const file = await api(`/api/library/file?repo=${encodeURIComponent(item.repo)}&path=${encodeURIComponent(item.path)}`);
         viewer.textContent = file.content;
+        viewerHead.append(copyButton(file.content, "Copy text"));
       } catch (error) {
         viewer.textContent = String(error.message || error);
       }
     };
-    card.append(el("div", { class: "lib-row" },
-      el("button", { onclick: open }, item.path),
-      el("span", { class: "muted small meta" }, item.repo.split("/")[0] + " · ", el("a", { href: item.url, target: "_blank", rel: "noopener" }, "GitHub ↗"))));
+    list.append(el("li", {}, el("button", { type: "button", onclick: open }, item.path), el("span", { class: "source" }, item.repo)));
   }
-  card.append(viewer);
+  card.append(list, viewerHead, viewer);
   return card;
 }
 
-$("#lib-go").addEventListener("click", async () => {
+$("#lib-sources").textContent = "Searches x1xhlol/system-prompts-and-models-of-ai-tools, elder-plinius/CL4R1T4S, jujumilk3/leaked-system-prompts, asgeirtj/system_prompts_leaks and anthropics/skills.";
+
+async function runLibrarySearch() {
   const results = $("#lib-results");
   const query = $("#lib-q").value.trim();
   results.replaceChildren();
-  if (!query) return;
-  const spinner = loading(results, "Searching public collections (first search downloads file lists)…");
+  if (!query) {
+    results.append(noteBox("Type the name of an AI app or model first."));
+    return;
+  }
+  const spinner = loading(results, "Searching public collections. The first search downloads their file lists.");
   try {
     results.append(await librarySection(query));
   } catch (error) {
     results.append(errorBox(error));
   }
   spinner.remove();
-});
-$("#lib-q").addEventListener("keydown", (event) => { if (event.key === "Enter") $("#lib-go").click(); });
-$("#lib-sources").textContent = "Sources: x1xhlol/system-prompts-and-models-of-ai-tools, elder-plinius/CL4R1T4S, jujumilk3/leaked-system-prompts, asgeirtj/system_prompts_leaks, anthropics/skills.";
+}
+$("#lib-go").addEventListener("click", runLibrarySearch);
+$("#lib-q").addEventListener("keydown", (event) => { if (event.key === "Enter") runLibrarySearch(); });
 
-/* ---------- reverse anything ---------- */
+/* ---------- analyze: input detection ---------- */
 let pickedFile = null;
+const KINDS = {
+  empty: { label: "Paste something or add an image to begin.", button: "Analyze" },
+  image: { label: "Image: reads metadata and Content Credentials.", button: "Analyze image" },
+  site: { label: "Website: scans its code for AI tools and policies.", button: "Scan website" },
+  app: { label: "AI app name: searches published prompts and skills.", button: "Search library" },
+  text: { label: "Text: checks which AI may have written it.", button: "Analyze text" },
+};
+
+function detectKind() {
+  const value = $("#input").value.trim();
+  if (pickedFile) return "image";
+  if (!value) return "empty";
+  if (/^https?:\/\/\S+$/i.test(value) || /^[\w-]+(\.[\w-]+)+(\/\S*)?$/.test(value)) return "site";
+  if (value.split(/\s+/).length <= 4 && value.length < 40) return "app";
+  return "text";
+}
+
+function updateDetected() {
+  const kind = detectKind();
+  const [prefix, ...rest] = KINDS[kind].label.split(":");
+  const textNode = $("#detected-text");
+  if (kind === "empty") {
+    textNode.textContent = KINDS.empty.label;
+  } else {
+    textNode.replaceChildren(el("strong", {}, prefix), ":" + rest.join(":"));
+  }
+  $("#detected").classList.toggle("ready", kind !== "empty");
+  const go = $("#go");
+  go.textContent = KINDS[kind].button;
+  go.disabled = kind === "empty" || go.dataset.busy === "1";
+}
+$("#input").addEventListener("input", updateDetected);
+$("#input").addEventListener("keydown", (event) => {
+  if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) $("#go").click();
+});
 
 function pickFile(file) {
-  if (!file) return;
+  if (!file || !file.type.startsWith("image/")) return;
   pickedFile = file;
-  $("#file-name").textContent = `${file.name} (${Math.round(file.size / 1024)} KB) — press Reverse`;
+  $("#file-thumb").src = URL.createObjectURL(file);
+  $("#file-name").textContent = file.name || "Pasted image";
+  $("#file-meta").textContent = `${Math.max(1, Math.round(file.size / 1024))} KB`;
+  $("#file-chip").hidden = false;
+  updateDetected();
+}
+
+function clearFile() {
+  pickedFile = null;
+  $("#file").value = "";
+  $("#file-chip").hidden = true;
+  updateDetected();
 }
 
 $("#file").addEventListener("change", (event) => pickFile(event.target.files[0]));
+$("#file-remove").addEventListener("click", clearFile);
+$("#file-label").addEventListener("keydown", (event) => {
+  if (event.key === "Enter" || event.key === " ") {
+    event.preventDefault();
+    $("#file").click();
+  }
+});
 const drop = $("#drop");
 drop.addEventListener("dragover", (event) => { event.preventDefault(); drop.classList.add("dragging"); });
 drop.addEventListener("dragleave", () => drop.classList.remove("dragging"));
@@ -408,9 +762,21 @@ drop.addEventListener("drop", (event) => {
   pickFile(event.dataTransfer.files[0]);
 });
 document.addEventListener("paste", (event) => {
-  const item = [...(event.clipboardData?.items || [])].find((i) => i.type.startsWith("image/"));
+  const item = [...(event.clipboardData?.items || [])].find((entry) => entry.type.startsWith("image/"));
   if (item) pickFile(item.getAsFile());
 });
+
+const EXAMPLES = {
+  text: "Here is a quick overview of the tower ([britannica.com](https://www.britannica.com/topic/Eiffel-Tower?utm_source=chatgpt.com)). It's important to note that it was completed in 1889 and was meant to be temporary. I hope this helps!",
+  site: "https://www.tidio.com",
+  app: "claude code",
+};
+document.querySelectorAll("[data-example]").forEach((button) => button.addEventListener("click", () => {
+  clearFile();
+  $("#input").value = EXAMPLES[button.dataset.example];
+  updateDetected();
+  $("#go").click();
+}));
 
 function fileToBase64(file) {
   return new Promise((resolve, reject) => {
@@ -423,100 +789,107 @@ function fileToBase64(file) {
 
 function brandFromHost(hostname) {
   const labels = hostname.replace(/^www\./, "").split(".");
-  if (labels.length >= 3 && ["co", "com", "org", "net", "ac"].includes(labels[labels.length - 2])) {
-    return labels[labels.length - 3];
-  }
+  if (labels.length >= 3 && ["co", "com", "org", "net", "ac"].includes(labels[labels.length - 2])) return labels[labels.length - 3];
   return labels.length >= 2 ? labels[labels.length - 2] : labels[0];
 }
 
-$("#file-label").addEventListener("keydown", (event) => {
-  if (event.key === "Enter" || event.key === " ") {
-    event.preventDefault();
-    $("#file").click();
-  }
-});
-
-$("#go").addEventListener("click", async () => {
-  const button = $("#go");
-  if (button.disabled) return;
-  button.disabled = true;
-  try {
-    await reverseAnything();
-  } finally {
-    button.disabled = false;
-  }
-});
-
-async function reverseAnything() {
+async function analyze() {
   const results = $("#results");
   results.replaceChildren();
+  $("#how").hidden = true;
   const useLlm = $("#use-llm").checked;
   const value = $("#input").value.trim();
+  const kind = detectKind();
+  if (useLlm && !llmConfig().model && (kind === "image" || kind === "text")) {
+    results.append(noteBox("No model is set up yet, so only the built-in checks will run. Add one in Settings."));
+  }
   try {
-    if (pickedFile) {
-      const spinner = loading(results, useLlm ? "Reading metadata and asking your LLM…" : "Reading metadata…");
+    if (kind === "image") {
+      const spinner = loading(results, useLlm ? "Reading metadata and asking your model..." : "Reading image metadata...");
       const data = await fileToBase64(pickedFile);
-      const report = await api("/api/image", {
-        filename: pickedFile.name, mime: pickedFile.type, data, use_llm: useLlm, llm: llmConfig(),
-      });
+      const report = await api("/api/image", { filename: pickedFile.name, mime: pickedFile.type, data, use_llm: useLlm, llm: llmConfig() });
       spinner.remove();
-      const preview = el("img", { class: "preview", src: URL.createObjectURL(pickedFile) });
-      results.append(renderReport("Image", report, el("div", { class: "row" }, preview)));
-      pickedFile = null;
-      $("#file-name").textContent = "";
-      $("#file").value = "";
-    } else if (/^https?:\/\/\S+$/i.test(value) || /^[\w-]+(\.[\w-]+)+(\/\S*)?$/.test(value)) {
+      results.append(renderReport(report, el("img", { class: "preview", src: $("#file-thumb").src, alt: "Analyzed image" })));
+    } else if (kind === "site") {
       const url = /^https?:/i.test(value) ? value : "https://" + value;
-      const spinner = loading(results, "Scanning website…");
       const brand = brandFromHost(new URL(url).hostname);
+      const spinner = loading(results, "Scanning the website and its scripts...");
       const [siteResult, libraryResult] = await Promise.allSettled([
         api("/api/site", { url }),
-        librarySection(brand, `Leaked prompts / tools / skills for “${brand}”`),
+        librarySection(brand, `Published prompts and skills for "${brand}"`),
       ]);
       spinner.remove();
-      results.append(siteResult.status === "fulfilled" ? renderReport("Website", siteResult.value) : errorBox(siteResult.reason));
+      results.append(siteResult.status === "fulfilled" ? renderReport(siteResult.value) : errorBox(siteResult.reason));
       if (libraryResult.status === "fulfilled") results.append(libraryResult.value);
-    } else if (value && value.split(/\s+/).length <= 4 && value.length < 40) {
-      const spinner = loading(results, "Searching leaked prompt & skills collections…");
+    } else if (kind === "app") {
+      const spinner = loading(results, "Searching published prompts and skills...");
       const card = await librarySection(value);
       spinner.remove();
       results.append(card);
-    } else if (value) {
-      const spinner = loading(results, useLlm ? "Analyzing text and asking your LLM…" : "Analyzing text…");
+    } else if (kind === "text") {
+      const spinner = loading(results, useLlm ? "Analyzing the text and asking your model..." : "Analyzing the text...");
       const report = await api("/api/text", { text: value, use_llm: useLlm, llm: llmConfig() });
       spinner.remove();
-      results.append(renderReport("Text", report));
-    } else {
-      results.append(el("div", { class: "note" }, "Paste text, a URL or an app name — or choose / drop / paste an image."));
+      results.append(renderReport(report));
     }
   } catch (error) {
     results.querySelectorAll(".loading").forEach((node) => node.remove());
     results.append(errorBox(error));
   }
+  results.firstElementChild?.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 
-/* ---------- endpoint probe ---------- */
+$("#go").addEventListener("click", async () => {
+  const go = $("#go");
+  if (go.dataset.busy === "1" || detectKind() === "empty") return;
+  go.dataset.busy = "1";
+  go.disabled = true;
+  try {
+    await analyze();
+  } finally {
+    go.dataset.busy = "";
+    updateDetected();
+  }
+});
+
+/* ---------- API test ---------- */
 $("#probe-go").addEventListener("click", async () => {
   const results = $("#probe-results");
   results.replaceChildren();
-  const spinner = loading(results, "Sending fingerprint questions…");
+  if (!$("#probe-ok").checked) {
+    results.append(noteBox("Confirm that you own this API or have permission to test it."));
+    return;
+  }
+  const button = $("#probe-go");
+  button.disabled = true;
+  const spinner = loading(results, "Asking the API a few identification questions...");
   try {
     const report = await api("/api/probe", {
-      authorized: $("#probe-ok").checked,
+      authorized: true,
       system_prompt: $("#probe-system").value,
       llm: { base_url: $("#probe-base").value.trim(), api_key: $("#probe-key").value.trim(), model: $("#probe-model").value.trim() },
     });
-    results.append(renderReport("Endpoint fingerprint", report));
+    results.append(renderReport(report));
   } catch (error) {
     results.append(errorBox(error));
   }
   spinner.remove();
+  button.disabled = false;
 });
 
 loadSettings();
+updateDetected();
+
+if (DEMO) {
+  const banner = el("div", { class: "note demo-banner" }, icon("info"),
+    el("span", {}, "You are viewing the online demo. Try the examples below, or ",
+      el("a", { href: "https://github.com/juw12/reverse-ai#readme" }, "download ReverseAI"),
+      " to analyze your own content privately on your computer."));
+  $(".page-head").after(banner);
+}
 
 if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("/sw.js").catch(() => {});
+  navigator.serviceWorker.register("sw.js").catch(() => {});
 }
 </script>
 </body>

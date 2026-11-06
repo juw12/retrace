@@ -1,0 +1,46 @@
+{
+ "kind": "text",
+ "verdict": {
+  "label": "OpenAI ChatGPT",
+  "confidence": "high"
+ },
+ "candidates": [
+  {
+   "name": "OpenAI ChatGPT",
+   "score": 3
+  }
+ ],
+ "prompt": {},
+ "details": {
+  "Words": 40,
+  "Sentences": 3,
+  "Avg sentence length": "9.7 words",
+  "Sentence-length variation (burstiness)": "0.51 (human text is usually > 0.5)",
+  "Em dashes per 1,000 words": "0.0",
+  "Markdown elements": 0,
+  "Symbol characters": 0,
+  "Vocabulary diversity": "0.85",
+  "Heuristic AI-likelihood": "38/100"
+ },
+ "sections": [],
+ "evidence": [
+  {
+   "candidate": "OpenAI ChatGPT",
+   "strength": "strong",
+   "signal": "ChatGPT web-search link tag (utm_source=chatgpt.com)",
+   "detail": "om](https://www.britannica.com/topic/Eiffel-Tower?utm_source=chatgpt.com)). It's important to note that it was completed i"
+  },
+  {
+   "candidate": null,
+   "strength": "medium",
+   "signal": "Assistant-style closer",
+   "detail": " completed in 1889 and was meant to be temporary. I hope this helps!"
+  }
+ ],
+ "notes": [
+  "Very short text — every detector is unreliable below ~50 words.",
+  "AI-text detection is probabilistic: edited, translated or prompted-to-sound-human text fools every detector. Treat the model guess as a lead, not proof."
+ ],
+ "raw": {},
+ "ai_likelihood": 38
+}

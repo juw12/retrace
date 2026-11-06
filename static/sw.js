@@ -1,7 +1,7 @@
 // Minimal service worker: makes ReverseAI installable and keeps the shell available offline.
 // API calls always go to the local server (never cached).
-const CACHE = "reverseai-shell-v1";
-const SHELL = ["/", "/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png", "/icons/favicon.png"];
+const CACHE = "reverseai-shell-v2";
+const SHELL = ["./", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png", "icons/favicon.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(SHELL)));
@@ -16,7 +16,7 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
-  if (event.request.method !== "GET" || url.pathname.startsWith("/api/")) return;
+  if (event.request.method !== "GET" || url.pathname.includes("/api/")) return;
   event.respondWith(
     fetch(event.request)
       .then((response) => {

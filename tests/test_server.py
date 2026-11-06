@@ -56,7 +56,7 @@ class ServerTests(unittest.TestCase):
         manifest = json.loads(body)
         self.assertEqual(manifest["display"], "standalone")
         for icon in manifest["icons"]:
-            self.assertEqual(self.get(icon["src"])[0], 200)
+            self.assertEqual(self.get("/" + icon["src"].lstrip("./"))[0], 200)
         self.assertEqual(self.get("/sw.js")[0], 200)
 
     def test_no_path_traversal(self):

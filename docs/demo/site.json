@@ -1,0 +1,47 @@
+{
+ "kind": "site",
+ "verdict": {
+  "label": "Tidio (Lyro AI)",
+  "confidence": "medium"
+ },
+ "candidates": [
+  {
+   "name": "Tidio (Lyro AI)",
+   "score": 2
+  }
+ ],
+ "prompt": {},
+ "details": {
+  "URL": "https://www.tidio.com",
+  "Title": "AI Customer Service That Turns Chats Into Revenue | Tidio",
+  "HTTP server": "cloudflare",
+  "HTTP x-powered-by": "Next.js",
+  "Scripts on page": 26,
+  "AI crawlers in robots.txt": "none named (default rules apply)",
+  "llms.txt": "present"
+ },
+ "sections": [
+  {
+   "title": "llms.txt — what the site tells AI models",
+   "body": "﻿# Tidio\r\n> Tidio is a customer support software suite comprising live chat, chatbot, AI chatbot (AI agent), help desk, and ticketing features. Tidio integrates with websites, ecommerce platforms (such as Shopify and WooCommerce), communications channels (such as Facebook Messenger, Instagram, and WhatsApp), and other tools to provide automated, enhanced customer service.\r\n\r\n\r\nLearn more about the Tidio customer service platform:\r\n\r\n\r\n## About Tidio\r\n- [Tidio Homepage](https://www.tidio.com/)\r\n- [Official Information About Tidio](https://www.tidio.com/llm-info/): Company facts, products, plans, and official links, written for AI assistants.\r\n- [About Tidio](https://www.tidio.com/about/): Learn about Tidio, the B2B SaaS company behind customer service software.\r\n  - [About Lyro](https://www.tidio.com/blog/lyro-conversational-ai/): Meet Lyro, the AI agent for customer service\r\n- [Tidio Pricing](https://www.tidio.com/pricing/): See how much Tidio costs.\r\n  - [Tidio Premium Plans](https://www.tidio.com/tidio-premium/): Find out more about Tidio Premium.\r\n\r\n\r\n## Access\r\n- [Log In](https://www.tidio.com/panel/login): Log into your Tidio account.\r\n- [Sign Up](https://www.tidio.com/panel/register): Register a new Tidio account.\r\n\r\n\r\n## Demos\r\n- [Lyro AI Agent Playground](https://www.tidio.com/ai-agent/playground/): Experience Lyro, Tidio’s AI agent in action.\r\n- [Watch Tidio Demo](https://www.tidio.com/watch-demo/): Watch a video demo of Tidio.\r\n\r\n\r\n## Tidio Comparisons\r\n- [Tidio vs. Gorgias](https://www.tidio.com/vs/gorgias/)\r\n- [Tidio vs. Intercom](https://www.tidio.com/vs/intercom/)\r\n- [Tidio vs. LiveChat](https://www.tidio.com/vs/live-chat/)\r\n- [Tidio vs. Zendesk](https://www.tidio.com/vs/zendesk/)\r\n\r\n\r\n## Features\r\n- [All Features Overview](https://www.tidio.com/features/)\r\n\r\n\r\n### Core Features \r\n- [Lyro](https://www.tidio.com/ai-agent/): AI agent for customer service and conversational AI chatbot\r\n- [Flows](https://www.tidio.com/flows/): Automation and rule-based chatbot builder\r\n- [Help Desk](https://www.tidio.com/help-desk/): Help desk software\r\n- [Live Chat](https://www.tidio.com/live-chat/): Live chat software for websites\r\n- [Ticketing System](https://www.tidio.com/ticketing/)\r\n\r\n\r\n### Additional Features\r\n- [Analytics Dashboard](https://www.tidio.com/analytics/)\r\n- [Visitors List Tool](https://www.tidio.com/visitors-list/)\r\n\r\n\r\n### Features by Use Case\r\n- [Tidio for Ecommerce](https://www.tidio.com/industry/ecommerce/)\r\n- [Tidio for Customer Service](https://www.tidio.com/solutions/customer-service/)\r\n- [Tidio for Marketing and Sales](https://www.tidio.com/solutions/marketing-and-sales/)\r\n\r\n\r\n## Integrations\r\n- [All Integrations](https://www.tidio.com/integrations/): See how Tidio can integrate with your technology stack.\r\n\r\n\r\n### Channel Integrations\r\n- [Instagram Integration](https://www.tidio.com/integrations/instagram/)\r\n- [Messenger Integration](https://www.tidio.com/integrations/messenger/)\r\n- [WhatsApp Integration](https://www.tidio.com/integrations/whatsapp/)\r\n- [Shared Inbox](https://www.tidio.com/shared-inbox/)\r\n- [Multichannel Communication](https://www.tidio.com/multichannel/)\r\n\r\n\r\n### Platform Integrations\r\n- [BigCommerce Integration](https://www.tidio.com/integrations/bigcommerce/)\r\n- [Ecwid Integration](https://www.tidio.com/integrations/ecwid/)\r\n- [Shopify Integration](https://www.tidio.com/integrations/shopify/)\r\n- [WordPress Integration](https://www.tidio.com/integrations/wordpress/)\r\n- [PrestaShop Integration](https://www.tidio.com/integrations/prestashop/)\r\n- [Shopware Integration](https://www.tidio.com/integrations/shopware/)\r\n- [Squarespace Integration](https://www.tidio.com/integrations/squarespace/)\r\n- [Weebly Integration](https://www.tidio.com/integrations/weebly/)\r\n- [Wix Integration](https://www.tidio.com/integrations/wix/)\r\n\r\n\r\n## Pricing\r\n\r\n\r\n| Plan | Description | Price |\r\n| --- | --- | --- |\r\n| Free | For solo entrepreneurs. | 0 USD/mo. |\r\n| Starter | Ideal for small businesses focused on enhancing customer satisfaction via live chat support. | 24.17 USD/mo. |\r\n| Growth | Ideal for teams of all sizes prioritizing customer service as their competitive advantage. | Starts at 49.17 USD/mo. |\r\n| Plus | For businesses requiring better limits, additional integrations, advanced features, and premium support. | Starts at 749 USD/mo. |\r\n| Premium | For more complex businesses. | Starts at 2999 USD/mo. |\r\n\r\n\r\n| Feature Category | Feature | Free | Starter | Growth | Plus | Premium |\r\n| --- | --- | --- | --- | --- | --- | --- |\r\n| Customer Support Quota | Billable conversations | 50 | 100 | 250 (up to 2000 via upgrade) | Custom | Unlimited |\r\n| Customer Support Quota | Seats | 10 | 10 | 10 | Custom | Custom |\r\n| Live Chat & Ticketing | Live Chat | ✓ | ✓ | ✓ | ✓ | ✓ |\r\n| Live Chat & Ticketing | Help Desk | ✓ | ✓ | ✓ | ✓ | ✓ |\r\n| Live Chat & Ticketing | Email management system | ✓ | ✓ | ✓ | ✓ | ✓ |\r\n| Live Chat & Ticketing | Live video calls | ✓ | ✓ | ✓ | ✓ | ✓ |\r\n| Lyro AI Agent | Lyro AI Agent conversations | 50 free (50–300 via upgrade) | 50 free (50–300 via upgrade) | 50 free (50–300 via upgrade) | Custom | Custom |\r\n| Lyro AI Agent | Lyro AI Agent tasks | ✓ | ✓ | ✓ | ✓ | ✓ |\r\n| Lyro AI Agent | FAQ upload | ✓ | ✓ | ✓ | ✓ | ✓ |\r\n| Lyro AI Agent | FAQ scraper | ✓ | ✓ | ✓ | ✓ | ✓ |\r\n| Lyro AI Agent | Website scraper | ✓ | ✓ | ✓ | ✓ | ✓ |\r\n| Lyro AI Agent | Lyro Connect | ✗ | ✗ | ✗ | ✓ | ✓ |\r\n| Lyro AI Agent | Lyro custom name | ✗ | ✗ | ✗ | ✓ | ✓ |\r\n| Lyro AI Agent | Lyro product recommendation | available via upgrade to 50–300 Lyro AI Agent conversations | available via upgrade to 50–300 Lyro AI Agent conversations | available via upgrade to 50–300 Lyro AI Agent conversations | ✓ | ✓ |\r\n| Flows | Visitors reached via Flows | 100 free, 2k–100k via upgrade | 100 free, 2k–100k via upgrade | 100 free, 2k–100k via upgrade | Custom | Custom |\r\n| Flows | Sales Flows templates | ✓ | ✓ | ✓ | ✓ | ✓ |\r\n| Flows | FAQ Flows templates | ✓ | ✓ | ✓ | ✓ | ✓ |\r\n| Flows | Visual Flow"
+  }
+ ],
+ "evidence": [
+  {
+   "candidate": "Tidio (Lyro AI)",
+   "strength": "medium",
+   "signal": "AI support chat: 'code.tidio.co' in first-party script https://homepage-cdn.tidio.com/_next/static/chunks/pages/_app-92b7ce7d61115bcf.js",
+   "detail": ";\n                    script.async = true;\n                    script.src = \\`//code.tidio.co/$\\{tidioppk}.js\\`;\n                    document.head.appendchild(s"
+  },
+  {
+   "candidate": null,
+   "strength": "medium",
+   "signal": "Site publishes /llms.txt (guidance written for LLMs)",
+   "detail": "﻿# Tidio\r\n> Tidio is a customer support software suite comprising live chat, chatbot, AI chatbot (AI agent), help desk, and ticketing features. Tidio integrates with websites, ecommerce platforms (suc"
+  }
+ ],
+ "notes": [
+  "A page scan only sees client-side tech. If a chatbot's model is called from the site's own server, paste a chat transcript into Reverse (text) or use Endpoint probe on an API you own."
+ ],
+ "raw": {}
+}

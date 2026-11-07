@@ -254,6 +254,13 @@ class TransparencyEvidenceTests(unittest.TestCase):
         for verdict_word in ("missing", "non-compliant", "noncompliant", "violation", "fails"):
             self.assertNotIn(verdict_word, wording)
 
+    def test_site_notes_use_plain_words_and_real_ui_names(self):
+        for note in (site.SERVER_SIDE_NOTE, site.IMAGES_NOTE):
+            with self.subTest(note=note):
+                for jargon in ("Reverse (text)", "Endpoint probe", "client-side", "C2PA"):
+                    self.assertNotIn(jargon, note)
+        self.assertIn("API test tab", site.SERVER_SIDE_NOTE)
+
     def test_match_signatures_reports_what_it_found(self):
         report = site.Report("site")
         page = '<script src="https://code.tidio.co/abc.js"></script>'

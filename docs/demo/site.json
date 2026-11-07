@@ -41,7 +41,7 @@
   }
  ],
  "notes": [
-  "A page scan only sees client-side tech. If a chatbot's model is called from the site's own server, paste a chat transcript into Reverse (text) or use Endpoint probe on an API you own."
+  "A page scan only sees code that runs in the browser. If the chatbot's model is called from the site's own server, paste a few chat replies into the box above, or test an API you own on the API test tab."
  ],
  "raw": {},
  "transparency": {
@@ -67,7 +67,7 @@
   ],
   "ai_crawlers": "none named (default rules apply)",
   "llms_txt": true,
-  "images": "Not checked by a site scan. Drop an image into Retrace to read its C2PA content credentials and AI metadata.",
+  "images": "Not part of a site scan. Drop an image into Retrace to read its AI metadata and content credentials.",
   "disclaimer": "Technical evidence, not legal advice. Whether a site needs an AI notice, and whether its wording is enough (EU AI Act Article 50), is a legal question for the site owner and their adviser."
  }
 }

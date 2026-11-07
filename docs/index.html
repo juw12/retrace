@@ -171,6 +171,11 @@
     transform: rotate(-45deg); transition: transform .15s; margin: 0 4px 0 2px; }
   details[open] > summary::before { transform: rotate(45deg); }
   details > summary .count { color: var(--muted); font-weight: 500; }
+  /* width: 0 + flex-grow keeps the one-line preview from widening the card; it only fills the space left */
+  details > summary .summary-preview { color: var(--muted); font-weight: 400; font-size: 13px; flex: 1 1 0; width: 0; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .loading-text { display: flex; flex-direction: column; gap: 2px; }
+  .loading-detail { font-size: 13px; }
+  .transparency .gloss { display: block; font-size: 12.5px; color: var(--muted); margin-top: 2px; }
   .evidence { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 8px; }
   .evidence li { display: grid; grid-template-columns: 76px 1fr; gap: 12px; font-size: 14px; padding: 8px 0; border-bottom: 1px solid var(--line); }
   .evidence li:last-child { border-bottom: 0; }
@@ -219,10 +224,10 @@
   /* AI transparency evidence + printable report */
   .transparency { border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 8px; padding: 2px 14px 12px; margin-top: 18px; }
   .transparency .section-title { margin-top: 14px; }
-  .transparency .glance { margin: 6px 0 4px; font-size: 14.5px; font-weight: 500; color: var(--text); }
+  .next-step { margin: 10px 0 0; font-size: 14.5px; font-weight: 500; color: var(--text); }
   .wording { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 14px; }
   .wording q { color: var(--muted); font-size: 13.5px; overflow-wrap: anywhere; }
-  .waitlist { font-size: 13.5px; color: var(--muted); margin: 14px 0 0; }
+  .waitlist { font-size: 13.5px; color: var(--muted); margin: 10px 4px 0; }
   #print-root, .print-only { display: none; }
   @media print {
     :root { --bg: #fff; --surface: #fff; --surface-2: #f4f5f7; --line: #d0d4da; --line-strong: #b8bec7; --text: #111; --muted: #444;
@@ -712,9 +717,10 @@ async function api(path, body) {
   return data;
 }
 
-function loading(container, message) {
+function loading(container, message, detail = "") {
   const elapsed = el("span", { class: "elapsed", "aria-hidden": "true" });
-  const node = el("div", { class: "card loading", role: "status" }, el("span", { class: "spinner" }), el("span", {}, message), elapsed);
+  const text = el("span", { class: "loading-text" }, message, detail ? el("span", { class: "loading-detail" }, detail) : null);
+  const node = el("div", { class: "card loading", role: "status" }, el("span", { class: "spinner" }), text, elapsed);
   const started = Date.now();
   const timer = setInterval(() => {
     if (!node.isConnected) {
@@ -833,6 +839,25 @@ function keyValueList(entries) {
   return el("dl", { class: "kv" }, entries.flatMap(([key, value]) => [el("dt", {}, key), el("dd", {}, String(value))]));
 }
 
+// A row label with a one-line plain-language explanation under it.
+function labelWithGloss(label, gloss) {
+  return el("span", {}, label, el("span", { class: "gloss" }, gloss));
+}
+
+// One muted line inside a collapsed section's summary, so users know what is inside before opening it.
+function summaryPreview(text) {
+  const clean = String(text || "").replace(/\s+https?:\/\/\S+/g, "").replace(/\s+/g, " ").trim();
+  return clean ? el("span", { class: "summary-preview" }, clean) : null;
+}
+
+// "1 strong, 1 weak": what the collapsed signal list holds, without restating the main signal.
+function strengthBreakdown(evidence) {
+  const order = ["strong", "medium", "weak"];
+  const counts = {};
+  for (const item of evidence) counts[item.strength] = (counts[item.strength] || 0) + 1;
+  return order.filter((level) => counts[level]).map((level) => `${counts[level]} ${level}`).join(", ");
+}
+
 function formatCheckedAt(iso) {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return iso;
@@ -843,8 +868,8 @@ function formatCheckedAt(iso) {
 function transparencyBlock(evidence) {
   const rows = [["AI chatbots and assistants", evidence.chatbots.length ? evidence.chatbots.join(", ") : "None visible in the page code"]];
   if (evidence.other_ai.length) rows.push(["Other AI in the page code", evidence.other_ai.join(", ")]);
-  rows.push(["AI-crawler rules (robots.txt)", evidence.ai_crawlers]);
-  rows.push(["llms.txt", evidence.llms_txt ? "Present" : "Not found"]);
+  rows.push([labelWithGloss("AI-crawler rules (robots.txt)", "Lines that allow or block AI bots such as GPTBot"), evidence.ai_crawlers]);
+  rows.push([labelWithGloss("llms.txt", "A file where a site tells AI tools what to read"), evidence.llms_txt ? "Present" : "Not found"]);
   rows.push(["Images", evidence.images]);
   rows.push(["Checked", `${formatCheckedAt(evidence.checked_at)}, ${evidence.url}`]);
   let wording;
@@ -857,19 +882,24 @@ function transparencyBlock(evidence) {
   } else {
     wording = el("p", { class: "summary" }, "None found in the page HTML.");
   }
-  const phraseCount = evidence.ai_wording.length;
-  const glance = [
-    evidence.chatbots.length ? `Chat assistant: ${evidence.chatbots.join(", ")}` : "No chat assistant in the page code",
-    phraseCount ? `${phraseCount} AI ${phraseCount === 1 ? "phrase" : "phrases"} quoted from the page text` : "No AI wording in the page text",
-    evidence.llms_txt ? "llms.txt present" : "No llms.txt",
-  ].join(" · ");
   return el("section", { class: "transparency", "aria-label": "AI transparency evidence" },
     sectionTitle("AI transparency evidence"),
-    el("p", { class: "glance" }, glance),
     keyValueList(rows),
     sectionTitle("Wording about AI in the page text"),
     wording,
     el("p", { class: "meter-caption" }, evidence.disclaimer));
+}
+
+// One concrete next step for a website result, based on what the scan could and could not see.
+function siteNextStep(evidence) {
+  if (!evidence) return "";
+  if (evidence.chatbots.length && !evidence.ai_wording.length) {
+    return "Next step: open the chat widget on the site and check that it tells visitors they are talking to an AI.";
+  }
+  if (evidence.chatbots.length) {
+    return "Next step: to learn which model answers the chat, copy a few chat replies and paste them into the box above.";
+  }
+  return "Next step: if the site has a chat or AI feature, copy a few of its replies and paste them into the box above.";
 }
 
 // Print only this result (the browser's print dialog can save it as a PDF).
@@ -904,6 +934,9 @@ function renderReport(report, extra) {
   if (summary) card.append(el("p", { class: "summary" }, summary));
   if (CONFIDENCE_HELP[report.verdict.confidence]) {
     card.append(el("p", { class: "meter-caption confidence-help" }, CONFIDENCE_HELP[report.verdict.confidence]));
+  }
+  if (report.kind === "site" && report.transparency) {
+    card.append(el("p", { class: "next-step" }, siteNextStep(report.transparency)));
   }
 
   if (report.prompt && report.prompt.positive) {
@@ -967,20 +1000,23 @@ function renderReport(report, extra) {
   }
   if (details.length && report.transparency) {
     // Website scans lead with the evidence block; raw page facts stay one click away.
-    card.append(el("details", {}, el("summary", {}, "Page details", el("span", { class: "count" }, `${details.length} facts`)),
-      kvList(details)));
+    card.append(el("details", {}, el("summary", {}, "Page details", el("span", { class: "count" }, `${details.length} facts`),
+      summaryPreview(details.map(([key]) => key).join(", "))), kvList(details)));
   } else if (details.length) {
     card.append(sectionTitle("Details"));
     card.append(kvList(details));
   }
 
   for (const section of report.sections || []) {
-    card.append(el("details", {}, el("summary", {}, section.title), el("pre", {}, section.body)));
+    const lines = section.body.split("\n").map((line) => line.trim()).filter(Boolean);
+    const firstLine = (lines.find((line) => !line.startsWith("#")) || lines[0] || "").replace(/^[#>*\-\s]+/, "");
+    card.append(el("details", {}, el("summary", {}, section.title, summaryPreview(firstLine)), el("pre", {}, section.body)));
   }
 
   if (report.evidence.length) {
     card.append(el("details", {},
-      el("summary", {}, "Why we think so", el("span", { class: "count" }, `${report.evidence.length} signals`)),
+      el("summary", {}, "Why we think so", el("span", { class: "count" }, `${report.evidence.length} signals`),
+        summaryPreview(strengthBreakdown(report.evidence))),
       el("ul", { class: "evidence" }, report.evidence.map((item) =>
         el("li", {},
           el("span", { class: "strength " + item.strength }, item.strength),
@@ -992,12 +1028,6 @@ function renderReport(report, extra) {
 
   if (report.raw && Object.keys(report.raw).length) {
     card.append(el("details", { class: "raw" }, el("summary", {}, "Raw data"), el("pre", {}, JSON.stringify(report.raw, null, 2))));
-  }
-  if (report.kind === "site") {
-    card.append(el("p", { class: "waitlist" }, "Look after many client sites? ",
-      el("a", { href: WAITLIST_URL, target: "_blank", rel: "noopener" }, "Join the Retrace Agency waitlist"),
-      " for batch scans and a branded evidence report per client (",
-      el("a", { href: SAMPLE_REPORT_URL, target: "_blank", rel: "noopener" }, "sample report, PDF"), ")."));
   }
   const created = new Date().toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
   card.prepend(el("div", { class: "print-only print-head" },
@@ -1012,6 +1042,14 @@ function renderReport(report, extra) {
     el("button", { class: "btn small", type: "button", onclick: () => download(report) }, "Download JSON"),
     report.kind === "endpoint" ? null : el("button", { class: "btn small", type: "button", onclick: startOver }, "Analyze something else")));
   return card;
+}
+
+// Shown under a website result, outside the evidence card.
+function agencyNote() {
+  return el("p", { class: "waitlist" }, "Look after many client sites? ",
+    el("a", { href: WAITLIST_URL, target: "_blank", rel: "noopener" }, "Join the Retrace Agency waitlist"),
+    " for batch scans and a branded evidence report per client (",
+    el("a", { href: SAMPLE_REPORT_URL, target: "_blank", rel: "noopener" }, "sample report, PDF"), ").");
 }
 
 function startOver() {
@@ -1252,13 +1290,15 @@ async function analyze() {
     } else if (kind === "site") {
       const url = /^https?:/i.test(value) ? value : "https://" + value;
       const brand = brandFromHost(new URL(url).hostname);
-      const spinner = loading(results, "Scanning the website and its scripts...");
+      const spinner = loading(results, "Scanning the website and its scripts...",
+      "Reading the page, its scripts, robots.txt and llms.txt.");
       const [siteResult, libraryResult] = await Promise.allSettled([
         api("/api/site", { url }),
         librarySection(brand, `Published prompts and skills for "${brand}"`),
       ]);
       spinner.remove();
       results.append(siteResult.status === "fulfilled" ? renderReport(siteResult.value) : errorBox(siteResult.reason));
+      if (siteResult.status === "fulfilled") results.append(agencyNote());
       const libraryCard = libraryResult.status === "fulfilled" ? libraryResult.value : null;
       if (libraryCard && siteResult.status === "fulfilled" && libraryCard.querySelector(".lib-list")) results.append(libraryCard);
     } else if (kind === "app") {

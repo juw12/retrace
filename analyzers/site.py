@@ -142,8 +142,12 @@ TRANSPARENCY_DISCLAIMER = (
     "Technical evidence, not legal advice. Whether a site needs an AI notice, and whether its wording "
     "is enough (EU AI Act Article 50), is a legal question for the site owner and their adviser."
 )
-IMAGES_NOTE = ("Not checked by a site scan. Drop an image into Retrace to read its C2PA content "
-               "credentials and AI metadata.")
+IMAGES_NOTE = ("Not part of a site scan. Drop an image into Retrace to read its AI metadata and "
+               "content credentials.")
+# Names only places that exist in the UI (the Analyze box, the API test tab).
+SERVER_SIDE_NOTE = ("A page scan only sees code that runs in the browser. If the chatbot's model is called from the "
+                    "site's own server, paste a few chat replies into the box above, or test an API you own on the "
+                    "API test tab.")
 
 
 def fetch(url, limit=2_000_000, timeout=12):
@@ -227,10 +231,7 @@ def analyze_site(url):
         report.add(None, "medium", "Generator meta tag names a site builder", generator.group(1))
 
     _policy_files({key: job.result() for key, job in policy_jobs.items()}, report)
-    report.notes.append(
-        "A page scan only sees client-side tech. If a chatbot's model is called from the site's own server, "
-        "paste a chat transcript into Reverse (text) or use Endpoint probe on an API you own."
-    )
+    report.notes.append(SERVER_SIDE_NOTE)
     result = report.to_dict(fallback_label="No AI tooling visible on the page")
     result["transparency"] = transparency_evidence(found_tools, html_text, report.details, final_url)
     return result

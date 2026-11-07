@@ -235,6 +235,12 @@ class LibraryTests(unittest.TestCase):
         self.assertEqual([m["path"] for m in library.rank_matches("gpt-4o", "x/y", paths)], ["OpenAI/gpt-4o.md"])
         self.assertEqual([m["path"] for m in library.rank_matches("v0", "x/y", paths)], ["VERCEL V0/Vercel_v0.txt"])
 
+    def test_closest_matches_prefer_rare_words(self):
+        paths = ["Misc/fellou-browser.md", "docs/browser.md", "tools/browser-use.md", "DIA/Dia_Prompt.txt"]
+        matches = library.rank_matches("Dia browser", "x/y", paths, tiers=(2, 3))
+        library.rank_by_rarity(matches, library.query_tokens("Dia browser"), paths)
+        self.assertEqual(sorted(matches, key=lambda m: m["rank"])[0]["path"], "DIA/Dia_Prompt.txt")
+
     def test_substring_fallback_is_partial(self):
         paths = ["rules/cursorrules.md"]
         self.assertEqual(library.rank_matches("cursor", "x/y", paths), [])

@@ -198,6 +198,8 @@
     text-align: left; cursor: pointer; overflow-wrap: anywhere; }
   .lib-list button:hover { text-decoration: underline; }
   .lib-list .source { color: var(--muted); font-size: 13px; white-space: nowrap; }
+  .lib-list mark { background: var(--accent-soft); color: inherit; font-weight: 650; border-radius: 3px; padding: 0 1px; }
+  .error-actions { display: flex; gap: 8px; margin-top: 12px; }
   .viewer-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 16px 0 8px; flex-wrap: wrap; }
   .viewer-head strong { overflow-wrap: anywhere; }
 
@@ -231,6 +233,9 @@
     .kv dt { border-bottom: 0; padding-bottom: 0; }
     .bar-row { grid-template-columns: 1fr; gap: 4px; }
     .form-actions .btn { width: 100%; min-height: 44px; }
+    .lib-list li { flex-direction: column; align-items: flex-start; gap: 0; padding-bottom: 8px; }
+    .lib-list .source { white-space: normal; overflow-wrap: anywhere; }
+    .error-actions .btn { flex: 1; min-height: 44px; }
   }
 </style>
 </head>
@@ -569,6 +574,19 @@ function libraryMatches(tokens, repo, paths, tiers) {
   return matches;
 }
 
+// Same as rank_by_rarity in analyzers/library.py.
+function libraryRankByRarity(matches, tokens, allPaths) {
+  const counts = Object.fromEntries(tokens.map((token) =>
+    [token, allPaths.filter((path) => libraryWordMatch(token, libraryWords(path))).length]));
+  for (const match of matches) {
+    const words = libraryWords(match.path);
+    const rarity = tokens.reduce((sum, token) =>
+      sum + (counts[token] && libraryWordMatch(token, words) ? 1 / counts[token] : 0), 0);
+    const [tier, ...rest] = match.rank;
+    match.rank = [tier, -Math.round(rarity * 1e6) / 1e6, ...rest];
+  }
+}
+
 async function demoLibrarySearch(query) {
   const tokens = libraryTokens(query);
   const errors = [];
@@ -594,6 +612,7 @@ async function demoLibrarySearch(query) {
   if (!results.length) {
     results = Object.entries(trees).flatMap(([repo, paths]) => libraryMatches(tokens, repo, paths, [2, 3]));
     partial = results.length > 0;
+    libraryRankByRarity(results, tokens, Object.values(trees).flat());
   }
   const order = (a, b) => {
     for (let index = 0; index < a.rank.length; index++) {
@@ -710,11 +729,30 @@ function friendlyError(message) {
   return { title: "Something went wrong", advice: null, detail: text };
 }
 
-function errorBox(error) {
+// Words of a file path wrapped in <mark> where they match what the user searched for.
+function highlightWords(path, tokens) {
+  if (!tokens.length) return [path];
+  const escaped = tokens.map((token) => token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+  const pattern = new RegExp(`(${escaped.join("|")})`, "gi");
+  return path.split(pattern).filter(Boolean).map((part) =>
+    tokens.includes(part.toLowerCase()) ? el("mark", {}, part) : part);
+}
+
+const DOWNLOAD_URL = "https://github.com/juw12/retrace#readme";
+
+function errorBox(error, retry) {
   const { title, advice, detail } = friendlyError(error && error.message ? error.message : error);
+  const needsApp = /downloadable app/.test(title);
+  const actions = [];
+  if (needsApp) {
+    actions.push(el("a", { class: "btn small primary", href: DOWNLOAD_URL }, "Download Retrace"));
+  } else if (retry) {
+    actions.push(el("button", { class: "btn small", type: "button", onclick: retry }, "Try again"));
+  }
   return el("div", { class: "card error-card", role: "alert" },
     el("div", { class: "error-title" }, icon("alert"), el("span", {}, title)),
     advice ? el("p", {}, advice) : null,
+    actions.length ? el("div", { class: "error-actions" }, ...actions) : null,
     detail ? el("details", {}, el("summary", {}, "Technical details"), el("pre", {}, detail)) : null);
 }
 
@@ -877,13 +915,13 @@ async function librarySection(query, title) {
     return card;
   }
   const shown = data.results.length;
-  if (data.snapshot) {
-    card.append(noteBox(`GitHub could not be searched live right now, so this used the file list saved on ${data.snapshot}. Files added since then may be missing.`));
-  }
-  if (data.partial) {
-    card.append(noteBox("No file name has every word you typed, so these are the closest matches."));
-  }
-  card.append(el("p", { class: "summary" }, `${data.total} files found${data.total > shown ? `, showing the first ${shown}` : ""}. Select one to read it here.`));
+  const notes = [];
+  if (data.partial) notes.push("No file name has every word you typed, so these are the closest matches.");
+  if (data.snapshot) notes.push(`GitHub could not be searched live, so this used the file list saved on ${data.snapshot}; newer files may be missing.`);
+  if (notes.length) card.append(noteBox(notes.join(" ")));
+  const plural = (count, word) => `${count} ${word}${count === 1 ? "" : "s"}`;
+  card.append(el("p", { class: "summary" }, `${plural(data.total, "file")} found${data.total > shown ? `, showing the first ${shown}` : ""}. Select one to read it here.`));
+  const highlightTokens = libraryTokens(query).filter((token) => token.length > 1);
   const viewerHead = el("div", { class: "viewer-head" });
   const viewer = el("pre", {});
   viewerHead.hidden = true;
@@ -919,7 +957,8 @@ async function librarySection(query, title) {
         viewer.textContent = String(error.message || error);
       }
     };
-    list.append(el("li", {}, el("button", { type: "button", onclick: open }, item.path), el("span", { class: "source" }, item.repo)));
+    list.append(el("li", {}, el("button", { type: "button", onclick: open }, ...highlightWords(item.path, highlightTokens)),
+      el("span", { class: "source" }, item.repo)));
   }
   card.append(list, viewerHead, viewer);
   return card;
@@ -939,7 +978,7 @@ async function runLibrarySearch() {
   try {
     results.append(await librarySection(query));
   } catch (error) {
-    results.append(errorBox(error));
+    results.append(errorBox(error, runLibrarySearch));
   }
   spinner.remove();
 }
@@ -1109,7 +1148,7 @@ async function analyze() {
     }
   } catch (error) {
     results.querySelectorAll(".loading").forEach((node) => node.remove());
-    results.append(errorBox(error));
+    results.append(errorBox(error, () => $("#go").click()));
   }
   results.firstElementChild?.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
@@ -1158,7 +1197,7 @@ updateDetected();
 if (DEMO) {
   const banner = el("div", { class: "note demo-banner" }, icon("info"),
     el("span", {}, "You are viewing the online demo. Try the examples below, or ",
-      el("a", { href: "https://github.com/juw12/retrace#readme" }, "download Retrace"),
+      el("a", { href: DOWNLOAD_URL }, "download Retrace"),
       " to analyze your own content privately on your computer."));
   $(".page-head").after(banner);
 }

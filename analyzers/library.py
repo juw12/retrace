@@ -132,6 +132,16 @@ def rank_matches(query, repo, paths, tiers=(1,)):
     return matches
 
 
+def rank_by_rarity(matches, tokens, all_paths):
+    """Closest matches: a file matching a rare word ("dia") beats one matching a common word ("browser")."""
+    counts = {token: sum(word_match(token, path_words(path)) for path in all_paths) for token in tokens}
+    for match in matches:
+        words = path_words(match["path"])
+        rarity = sum(1 / counts[token] for token in tokens if counts[token] and word_match(token, words))
+        tier, *rest = match["rank"]
+        match["rank"] = (tier, -round(rarity, 6), *rest)
+
+
 def search(query, limit=60):
     errors, trees = [], {}
     with ThreadPoolExecutor(max_workers=len(REPOS)) as pool:
@@ -147,6 +157,7 @@ def search(query, limit=60):
         results = [match for repo, paths in trees.items()
                    for match in rank_matches(query, repo, paths, tiers=(2, 3))]
         partial = bool(results)
+        rank_by_rarity(results, query_tokens(query), [path for paths in trees.values() for path in paths])
     results.sort(key=lambda item: item["rank"])
     for item in results:
         item.pop("rank")

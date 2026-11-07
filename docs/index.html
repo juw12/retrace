@@ -482,7 +482,7 @@ const LIBRARY_FILLER = new Set(["app", "apps", "ai", "the", "an", "and", "for", 
 const LIBRARY_CACHE_MS = 24 * 3600 * 1000;
 
 function libraryTokens(query) {
-  const tokens = (query.toLowerCase().match(/[a-z0-9]+/g) || []).filter((token) => token.length > 1);
+  const tokens = (query.toLowerCase().match(/[a-z0-9]+/g) || []).filter((token) => token.length > 1 || /^\d$/.test(token));
   const meaningful = tokens.filter((token) => !LIBRARY_FILLER.has(token));
   return meaningful.length ? meaningful : tokens;
 }
@@ -511,16 +511,53 @@ async function libraryPaths(repo) {
   return paths;
 }
 
-function libraryMatches(tokens, repo, paths, partial) {
+// Same matching as analyzers/library.py: whole words first, so "Meta" does not match "metadata".
+function libraryWords(path) {
+  const spaced = path
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2")
+    .replace(/([A-Za-z])(?=[0-9])|([0-9])(?=[A-Za-z])/g, "$1$2 ");
+  return spaced.toLowerCase().match(/[a-z0-9]+/g) || [];
+}
+
+function libraryWordMatch(token, words) {
+  for (let start = 0; start < words.length; start++) {
+    let joined = "";
+    for (const word of words.slice(start)) {
+      joined += word;
+      if (joined === token) return true;
+      if (!token.startsWith(joined)) break;
+    }
+  }
+  return false;
+}
+
+function libraryTier(tokens, path) {
+  const words = libraryWords(path);
+  if (tokens.every((token) => libraryWordMatch(token, words))) return 1;
+  if (tokens.length > 1 && libraryWordMatch(tokens.join(""), words)) return 1;
+  const compact = path.toLowerCase().replace(/[^a-z0-9]/g, "");
+  if (tokens.every((token) => compact.includes(token))) return 2;
+  if (tokens.some((token) => libraryWordMatch(token, words))) return 3;
+  return 0;
+}
+
+function libraryMatches(tokens, repo, paths, tiers) {
   const matches = [];
+  if (!tokens.length) return matches;
   for (const path of paths) {
-    const compact = path.toLowerCase().replace(/[^a-z0-9]/g, "");
-    const hits = tokens.filter((token) => compact.includes(token)).length;
-    if (!tokens.length || !hits || (!partial && hits < tokens.length)) continue;
-    const fileName = path.split("/").pop().toLowerCase().replace(/[^a-z0-9]/g, "");
-    const inName = tokens.every((token) => fileName.includes(token));
+    const tier = libraryTier(tokens, path);
+    if (!tiers.includes(tier)) continue;
+    const words = libraryWords(path);
+    const nameWords = libraryWords(path.split("/").pop());
+    const topWords = path.includes("/") ? libraryWords(path.split("/")[0]) : words;
+    const hits = tokens.filter((token) => libraryWordMatch(token, words)).length;
+    const phrase = tokens.length > 1 && libraryWordMatch(tokens.join(""), words);
+    let place = 2;
+    if (tokens.every((token) => libraryWordMatch(token, nameWords))) place = 0;
+    else if (tokens.every((token) => libraryWordMatch(token, topWords))) place = 1;
     const url = `https://github.com/${repo}/blob/HEAD/${path.split("/").map(encodeURIComponent).join("/")}`;
-    matches.push({ repo, path, url, rank: [-hits, inName ? 0 : 1, path.length] });
+    matches.push({ repo, path, url, rank: [tier, phrase ? 0 : 1, -hits, place, path.length] });
   }
   return matches;
 }
@@ -537,13 +574,18 @@ async function demoLibrarySearch(query) {
     }
   }));
   if (!Object.keys(trees).length) throw new Error(errors[0] ? errors[0].split(": ").slice(1).join(": ") : "Could not reach GitHub.");
-  let results = Object.entries(trees).flatMap(([repo, paths]) => libraryMatches(tokens, repo, paths, false));
+  let results = Object.entries(trees).flatMap(([repo, paths]) => libraryMatches(tokens, repo, paths, [1]));
   let partial = false;
-  if (!results.length && tokens.length > 1) {
-    results = Object.entries(trees).flatMap(([repo, paths]) => libraryMatches(tokens, repo, paths, true));
+  if (!results.length) {
+    results = Object.entries(trees).flatMap(([repo, paths]) => libraryMatches(tokens, repo, paths, [2, 3]));
     partial = results.length > 0;
   }
-  const order = (a, b) => a.rank[0] - b.rank[0] || a.rank[1] - b.rank[1] || a.rank[2] - b.rank[2];
+  const order = (a, b) => {
+    for (let index = 0; index < a.rank.length; index++) {
+      if (a.rank[index] !== b.rank[index]) return a.rank[index] - b.rank[index];
+    }
+    return 0;
+  };
   results.sort(order);
   return {
     query,
@@ -622,6 +664,9 @@ function friendlyError(message) {
       "The address may be wrong or the site may be down. On a work network, a proxy can also block it."],
     [/CERTIFICATE|SSL/i, "The website's security certificate could not be verified", "The site may be misconfigured. Try its http:// address."],
     [/HTTP 40[13]/i, "The website refused the request", "It blocks automated visitors, so its code cannot be scanned from here."],
+    [/HTTP 404 from \S*chat\/completions/i, "Your AI endpoint was not found",
+      "Check the base URL in Settings. Most servers end in /v1, for example http://localhost:11434/v1."],
+    [/HTTP 400/i, "The server rejected the request", "Check the address. Some sites also reject automated visitors."],
     [/HTTP 404/i, "That page does not exist", "Check the address, or try the site's home page."],
     [/HTTP 429/i, "The service is rate-limiting requests", "Wait a minute and try again."],
     [/HTTP 5\d\d/i, "The server had a problem", "Try again in a moment."],
@@ -876,12 +921,30 @@ const KINDS = {
   text: { label: "Text: checks which AI may have written it.", button: "Analyze text" },
 };
 
+// "gpt-4.1" or "qwen2.5" are model names, not sites: a domain needs a letter TLD.
+const SITE_PATTERNS = [
+  /^https?:\/\/\S+$/i,
+  /^(?:[\w-]+\.)+[a-z]{2,}(?::\d+)?(?:[/?#]\S*)?$/i,
+  /^localhost(?::\d+)?(?:[/?#]\S*)?$/i,
+  /^\d{1,3}(?:\.\d{1,3}){3}(?::\d+)?(?:[/?#]\S*)?$/,
+];
+
+function looksLikeSite(value) {
+  return SITE_PATTERNS.some((pattern) => pattern.test(value));
+}
+
+// A short name like "Claude Code" or "gpt-4.1"; a short sentence ("Is this AI?") goes to text.
+function looksLikeAppName(value) {
+  if (/\n/.test(value) || value.length >= 40 || value.split(/\s+/).length > 4) return false;
+  return !/[!?;]|,\s|\.$|["\u201c\u201d]/.test(value);
+}
+
 function detectKind() {
   const value = $("#input").value.trim();
   if (pickedFile) return "image";
   if (!value) return "empty";
-  if (/^https?:\/\/\S+$/i.test(value) || /^[\w-]+(\.[\w-]+)+(\/\S*)?$/.test(value)) return "site";
-  if (value.split(/\s+/).length <= 4 && value.length < 40) return "app";
+  if (looksLikeSite(value)) return "site";
+  if (looksLikeAppName(value)) return "app";
   return "text";
 }
 

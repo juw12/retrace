@@ -9,10 +9,8 @@ import json
 import re
 import urllib.error
 import urllib.request
-from urllib.parse import urlparse
 
-LOCAL_HOSTS = {"localhost", "127.0.0.1", "::1"}
-DIRECT = urllib.request.build_opener(urllib.request.ProxyHandler({}))  # local models must skip corporate proxies
+from .net import is_local_host, opener_for
 
 IMAGE_INSTRUCTIONS = """You are an AI-image forensics assistant. Study the image and answer ONLY with JSON:
 {"prompt": "the most likely text-to-image prompt that produced it, written in generator style",
@@ -36,7 +34,7 @@ TEXT:
 
 def chat(config, messages, max_tokens=900):
     """Call /chat/completions. Returns (reply_text, response_json, response_headers)."""
-    base_url = (config.get("base_url") or "https://api.openai.com/v1").rstrip("/")
+    base_url = normalize_base_url(config.get("base_url"))
     if not config.get("model"):
         raise ValueError("Set a model name in Settings first.")
     headers = {"Content-Type": "application/json"}
@@ -44,7 +42,14 @@ def chat(config, messages, max_tokens=900):
         headers["Authorization"] = f"Bearer {config['api_key']}"
     payload = {"model": config["model"], "messages": messages, "max_tokens": max_tokens, "temperature": 0}
     try:
-        body, response_headers = _post(base_url + "/chat/completions", payload, headers)
+        try:
+            body, response_headers = _post(base_url + "/chat/completions", payload, headers)
+        except RuntimeError as error:
+            # "http://localhost:11434" instead of ".../v1": retry once with the usual /v1 suffix.
+            if not str(error).startswith("HTTP 404") or re.search(r"/v\d+$", base_url):
+                raise
+            base_url += "/v1"
+            body, response_headers = _post(base_url + "/chat/completions", payload, headers)
     except RuntimeError as error:
         # Some newer models reject max_tokens/temperature; retry with the bare minimum.
         if not re.search(r"max_tokens|temperature|unsupported", str(error), re.I):
@@ -55,11 +60,20 @@ def chat(config, messages, max_tokens=900):
     return reply, body, response_headers
 
 
+def normalize_base_url(base_url):
+    """Accept what people paste: no scheme, a trailing slash, or the full /chat/completions URL."""
+    base_url = (base_url or "https://api.openai.com/v1").strip().rstrip("/")
+    base_url = re.sub(r"/chat/completions$", "", base_url, flags=re.I)
+    if not re.match(r"https?://", base_url, re.I):
+        host = re.split(r"[:/]", base_url, maxsplit=1)[0]
+        base_url = ("http://" if is_local_host(host) else "https://") + base_url
+    return base_url
+
+
 def _post(url, payload, headers):
     request = urllib.request.Request(url, data=json.dumps(payload).encode(), headers=headers)
     try:
-        opener = DIRECT if urlparse(url).hostname in LOCAL_HOSTS else urllib.request.build_opener()
-        with opener.open(request, timeout=180) as response:
+        with opener_for(url).open(request, timeout=180) as response:
             return json.loads(response.read()), dict(response.headers.items())
     except urllib.error.HTTPError as error:
         detail = error.read()[:800].decode("utf-8", "replace")

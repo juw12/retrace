@@ -65,11 +65,16 @@ INVISIBLE_CHARS = {
     0x2066: "bidi isolate", 0x2067: "bidi isolate", 0x2068: "bidi isolate", 0x2069: "bidi isolate",
 }
 VARIATION_RUN = re.compile("[\uFE00-\uFE0F\U000E0100-\U000E01EF]{4,}")
+# Chinese/Japanese are written without spaces, so each character counts as one word.
+CJK_CHAR = re.compile("[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]")
+ENGLISH_COMMON = {"the", "a", "an", "and", "or", "of", "to", "in", "on", "for", "with", "is", "are", "was",
+                  "be", "it", "that", "this", "you", "i", "we", "they", "as", "at", "by", "not", "have", "can"}
+WORD = re.compile(r"[^\W\d_]+(?:['\u2019][^\W\d_]+)*")
 
 
 def analyze_text(text):
     report = Report("text")
-    hidden = _hidden_characters(text, report)
+    hidden, hidden_payload = _hidden_characters(text, report)
     strong_artifact, generic_hits = _artifacts(text, report)
     style_hits = _style_markers(text, report)
     stats = _statistics(text)
@@ -87,13 +92,20 @@ def analyze_text(text):
         score = int(score * 0.6)
         report.notes.append("Very short text — every detector is unreliable below ~50 words.")
     score = min(100, score)
+    if stats["non_english"]:
+        report.notes.append(
+            "The text is mostly not English. Phrase and style markers are English-only, so only direct "
+            "traces (citation tags, self-identification, hidden characters) count here."
+        )
 
     report.details["Heuristic AI-likelihood"] = f"{score}/100"
     report.notes.append(
         "AI-text detection is probabilistic: edited, translated or prompted-to-sound-human text fools every "
         "detector. Treat the model guess as a lead, not proof."
     )
-    if score >= 50:
+    if hidden_payload:
+        result = report.to_dict("Hidden text found", "high")
+    elif score >= 50:
         result = report.to_dict("Likely AI-written (model unclear)", "low")
     else:
         result = report.to_dict("No clear AI fingerprint", "none")
@@ -113,16 +125,19 @@ def _hidden_characters(text, report):
         if name:
             counts[name] = counts.get(name, 0) + 1
     if not counts:
-        return False
+        return False, False
     report.details["Hidden / invisible characters"] = ", ".join(f"{name} ×{count}" for name, count in counts.items())
 
+    payload_found = False
     tag_text = "".join(chr(ord(ch) - 0xE0000) for ch in text if 0xE0020 <= ord(ch) <= 0xE007E)
     if tag_text:
+        payload_found = True
         report.add(None, "strong", "Hidden text smuggled in Unicode TAG characters", tag_text)
         report.section("Decoded hidden TAG-character text", tag_text)
     for run in VARIATION_RUN.findall(text):
         payload = bytes(ord(ch) - 0xFE00 if ord(ch) <= 0xFE0F else ord(ch) - 0xE0100 + 16 for ch in run)
         decoded = payload.decode("utf-8", "replace")
+        payload_found = True
         report.add(None, "strong", "Data hidden in variation selectors", decoded)
         report.section("Decoded variation-selector payload", decoded)
     if counts.get("narrow no-break space"):
@@ -131,7 +146,7 @@ def _hidden_characters(text, report):
     zero_width = sum(count for name, count in counts.items() if "zero-width" in name or "bidi" in name)
     if zero_width:
         report.add(None, "medium", "Zero-width / bidi control characters present", f"{zero_width} found")
-    return True
+    return True, payload_found
 
 
 def _artifacts(text, report):
@@ -162,10 +177,20 @@ def _style_markers(text, report):
     return total
 
 
+def _words(text):
+    """Words in any script: letter runs (accents included) plus one word per CJK character."""
+    return WORD.findall(CJK_CHAR.sub(" ", text)) + CJK_CHAR.findall(text)
+
+
 def _statistics(text):
-    words = re.findall(r"[A-Za-z']+", text)
-    sentences = [part for part in re.split(r"(?<=[.!?])\s+|\n+", text) if len(part.split()) >= 3]
-    lengths = [len(sentence.split()) for sentence in sentences]
+    words = _words(text)
+    parts = re.split(r"(?<=[.!?])\s+|(?<=[\u3002\uff01\uff1f])|\n+", text)
+    lengths = [count for count in (len(_words(part)) for part in parts) if count >= 3]
+    letters = [ch for ch in text if ch.isalpha()]
+    mostly_non_latin = len(letters) >= 20 and sum(ch.isascii() for ch in letters) / len(letters) < 0.5
+    # Latin-script languages (Indonesian, Spanish…) pass the check above, so also look for common English words.
+    english_share = sum(word.lower() in ENGLISH_COMMON for word in words) / len(words) if words else 0
+    non_english = mostly_non_latin or (len(words) >= 15 and english_share < 0.1)
     mean = statistics.mean(lengths) if lengths else 0
     variation = statistics.pstdev(lengths) / mean if len(lengths) >= 2 and mean else None
     em_dash_per_k = text.count("—") * 1000 / max(len(words), 1)
@@ -179,6 +204,7 @@ def _statistics(text):
         "variation": variation,
         "em_dash_per_k": em_dash_per_k,
         "markdown": markdown,
+        "non_english": non_english,
         "display": {
             "Words": len(words),
             "Sentences": len(lengths),

@@ -147,11 +147,6 @@
    "url": "https://github.com/x1xhlol/system-prompts-and-models-of-ai-tools/blob/HEAD/Anthropic/Claude%20Code/Tools.json"
   },
   {
-   "repo": "x1xhlol/system-prompts-and-models-of-ai-tools",
-   "path": "VSCode Agent/claude-sonnet-4.txt",
-   "url": "https://github.com/x1xhlol/system-prompts-and-models-of-ai-tools/blob/HEAD/VSCode%20Agent/claude-sonnet-4.txt"
-  },
-  {
    "repo": "asgeirtj/system_prompts_leaks",
    "path": "Anthropic/claude-code/agents/Plan.md",
    "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/agents/Plan.md"
@@ -172,19 +167,9 @@
    "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/agents/claude.md"
   },
   {
-   "repo": "x1xhlol/system-prompts-and-models-of-ai-tools",
-   "path": "Augment Code/claude-4-sonnet-tools.json",
-   "url": "https://github.com/x1xhlol/system-prompts-and-models-of-ai-tools/blob/HEAD/Augment%20Code/claude-4-sonnet-tools.json"
-  },
-  {
    "repo": "asgeirtj/system_prompts_leaks",
    "path": "Anthropic/claude-code/agents/Explore.md",
    "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/agents/Explore.md"
-  },
-  {
-   "repo": "anthropics/skills",
-   "path": "skills/claude-api/shared/error-codes.md",
-   "url": "https://github.com/anthropics/skills/blob/HEAD/skills/claude-api/shared/error-codes.md"
   },
   {
    "repo": "asgeirtj/system_prompts_leaks",
@@ -278,11 +263,6 @@
   },
   {
    "repo": "asgeirtj/system_prompts_leaks",
-   "path": "Meta/muse-code/skills/resume-claude/SKILL.md",
-   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Meta/muse-code/skills/resume-claude/SKILL.md"
-  },
-  {
-   "repo": "asgeirtj/system_prompts_leaks",
    "path": "Anthropic/claude-code/prompts/advisor-tool.md",
    "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/prompts/advisor-tool.md"
   },
@@ -300,9 +280,29 @@
    "repo": "asgeirtj/system_prompts_leaks",
    "path": "Anthropic/claude-code/skills/morning/SKILL.md",
    "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/skills/morning/SKILL.md"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Anthropic/claude-code/skills/pdf/REFERENCE.md",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/skills/pdf/REFERENCE.md"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Anthropic/claude-code/skills/pptx/LICENSE.txt",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/skills/pptx/LICENSE.txt"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Anthropic/claude-code/skills/xlsx/LICENSE.txt",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/skills/xlsx/LICENSE.txt"
+  },
+  {
+   "repo": "asgeirtj/system_prompts_leaks",
+   "path": "Anthropic/claude-code/output-styles/concise.md",
+   "url": "https://github.com/asgeirtj/system_prompts_leaks/blob/HEAD/Anthropic/claude-code/output-styles/concise.md"
   }
  ],
- "total": 345,
+ "total": 344,
  "errors": [],
  "partial": false,
  "sources": {

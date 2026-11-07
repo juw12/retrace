@@ -131,6 +131,15 @@ def analyze_image(data, filename=""):
     report.raw["metadata"] = {key: value[:20000] for key, value in metadata.items()}
     if c2pa:
         report.raw["c2pa"] = c2pa
+    if image_format == "unknown":
+        report.notes = ["Retrace reads PNG, JPEG and WebP files. This file is none of those, or it is damaged."]
+        return report.to_dict(fallback_label="Not a supported image (use PNG, JPEG or WebP)")
+    if image_format == "gif":
+        report.notes.insert(0, "GIF files carry no AI generation metadata, so only a Content Credentials search was done.")
+        return report.to_dict(fallback_label="GIF has no AI metadata to read")
+    if image_format == "avif/heic":
+        report.notes.insert(0, "AVIF/HEIC metadata is not read yet, so only a Content Credentials (C2PA) search was done.")
+        return report.to_dict(fallback_label="No AI signature found (AVIF/HEIC metadata not read)")
     return report.to_dict(fallback_label="No AI signature in metadata")
 
 
@@ -141,7 +150,9 @@ def detect_format(data):
         return "jpeg"
     if data[:4] == b"RIFF" and data[8:12] == b"WEBP":
         return "webp"
-    if data[4:12] in (b"ftypavif", b"ftypheic", b"ftypmif1"):
+    if data[:6] in (b"GIF87a", b"GIF89a"):
+        return "gif"
+    if data[4:8] == b"ftyp" and data[8:12] in (b"avif", b"avis", b"heic", b"heix", b"hevc", b"mif1", b"msf1"):
         return "avif/heic"
     return "unknown"
 

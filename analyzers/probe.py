@@ -75,7 +75,7 @@ def run_probe(config, system_prompt=""):
     with ThreadPoolExecutor(max_workers=len(PROBES)) as pool:
         results = list(pool.map(ask, [question for _, question in PROBES]))
     if all(reply.startswith("[error]") for reply, _, _ in results):
-        raise RuntimeError(results[0][0])
+        raise RuntimeError(results[0][0].removeprefix("[error] "))
 
     report = Report("endpoint")
     answers = {}

@@ -14,8 +14,8 @@
  "details": {
   "Words": 40,
   "Sentences": 3,
-  "Avg sentence length": "9.7 words",
-  "Sentence-length variation (burstiness)": "0.51 (human text is usually > 0.5)",
+  "Avg sentence length": "13.3 words",
+  "Sentence-length variation (burstiness)": "0.53 (human text is usually > 0.5)",
   "Em dashes per 1,000 words": "0.0",
   "Markdown elements": 0,
   "Symbol characters": 0,

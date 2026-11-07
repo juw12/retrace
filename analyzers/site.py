@@ -13,11 +13,13 @@ import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from urllib.parse import urljoin, urlparse
 
+from .net import is_local_host, opener_for
 from .report import Report
 
 USER_AGENT = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
               "(KHTML, like Gecko) Chrome/130.0 Safari/537.36 Retrace/1.0")
-MAX_SCRIPTS = 12
+MAX_SCRIPTS = 40  # chat widgets are often loaded late (Intercom's loader is script 19 of 38 on intercom.com)
+MAX_SCRIPT_BYTES = 1_500_000
 FIRST_PARTY_ONLY = ("AI API in client code", "AI framework")
 
 # (name, category, lowercase patterns)
@@ -107,7 +109,7 @@ POLICY_FILES = {
 def fetch(url, limit=2_000_000, timeout=12):
     request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT, "Accept": "*/*"})
     try:
-        with urllib.request.urlopen(request, timeout=timeout) as response:
+        with opener_for(url).open(request, timeout=timeout) as response:
             raw = response.read(limit)
             charset = response.headers.get_content_charset() or "utf-8"
             return {
@@ -126,7 +128,8 @@ def fetch(url, limit=2_000_000, timeout=12):
 def analyze_site(url):
     url = url.strip()
     if not re.match(r"https?://", url, re.I):
-        url = "https://" + url
+        host = re.split(r"[:/?#]", url, maxsplit=1)[0]
+        url = ("http://" if is_local_host(host) else "https://") + url  # local dev servers rarely have TLS
     page = fetch(url)
     if page["error"]:
         raise RuntimeError(f"Could not fetch {url}: {page['error']}")
@@ -155,17 +158,25 @@ def analyze_site(url):
     site_domain = base_domain(parsed.hostname or "")
     first_party = [src for src in script_sources if base_domain(urlparse(src).hostname or "") == site_domain]
     third_party = [src for src in script_sources if src not in first_party]
-    scripts_to_read = (first_party + third_party)[:MAX_SCRIPTS]
+    scripts_to_read = list(dict.fromkeys(first_party + third_party))[:MAX_SCRIPTS]
 
-    with ThreadPoolExecutor(max_workers=8) as pool:
-        script_jobs = {src: pool.submit(fetch, src, 3_000_000) for src in scripts_to_read}
+    with ThreadPoolExecutor(max_workers=12) as pool:
+        script_jobs = {src: pool.submit(fetch, src, MAX_SCRIPT_BYTES) for src in scripts_to_read}
         policy_jobs = {key: pool.submit(fetch, origin + path, 300_000) for key, path in POLICY_FILES.items()}
     haystacks = {"page HTML": page_code(html_text)}
+    scripts_read = 0
     for src, job in script_jobs.items():
         body = job.result()["text"]
         if body:
+            scripts_read += 1
             label = "first-party script" if src in first_party else "third-party script"
             haystacks[f"{label} {src}"] = body.lower()
+    unique_scripts = len(set(script_sources))
+    if scripts_read < unique_scripts:
+        report.notes.append(
+            f"Read {scripts_read} of {unique_scripts} scripts (the rest were skipped or failed to load), "
+            "so a tool loaded by an unread script may be missing."
+        )
 
     _match_signatures(haystacks, report)
     host = parsed.hostname or ""

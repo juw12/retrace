@@ -60,27 +60,74 @@ FILLER = {"app", "apps", "ai", "the", "an", "and", "for", "of", "prompt", "promp
 
 
 def query_tokens(query):
-    tokens = [token for token in re.findall(r"[a-z0-9]+", query.lower()) if len(token) > 1]
+    """Lower-case words of the query, minus filler. Single digits stay ("GPT 5" -> gpt, 5)."""
+    tokens = [token for token in re.findall(r"[a-z0-9]+", query.lower()) if len(token) > 1 or token.isdigit()]
     meaningful = [token for token in tokens if token not in FILLER]
     return meaningful or tokens
 
 
-def rank_matches(query, repo, paths, partial=False):
-    """Files whose path contains every query word (or, with partial=True, at least one)."""
+def path_words(path):
+    """Words of a path, split on punctuation, camelCase and letter/digit changes: ChatGPT-4o -> chat gpt 4 o."""
+    spaced = re.sub(r"([a-z])([A-Z])", r"\1 \2", path)
+    spaced = re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1 \2", spaced)
+    spaced = re.sub(r"([A-Za-z])(?=[0-9])|([0-9])(?=[A-Za-z])", r"\1\2 ", spaced)
+    return re.findall(r"[a-z0-9]+", spaced.lower())
+
+
+def word_match(token, words):
+    """True if the token is one whole word or a run of whole words ("chatgpt" = chat|gpt, "gpt5" = gpt|5)."""
+    for start in range(len(words)):
+        joined = ""
+        for word in words[start:]:
+            joined += word
+            if joined == token:
+                return True
+            if not token.startswith(joined):
+                break
+    return False
+
+
+def match_tier(tokens, path):
+    """1 = every word matches whole words, 2 = every word appears inside the path, 3 = some word matches."""
+    words = path_words(path)
+    if all(word_match(token, words) for token in tokens):
+        return 1
+    if len(tokens) > 1 and word_match("".join(tokens), words):
+        return 1
+    compact = re.sub(r"[^a-z0-9]", "", path.lower())
+    if all(token in compact for token in tokens):
+        return 2
+    if any(word_match(token, words) for token in tokens):
+        return 3
+    return None
+
+
+def rank_matches(query, repo, paths, tiers=(1,)):
+    """Files whose path matches the query in one of the given tiers (see match_tier)."""
     tokens = query_tokens(query)
+    if not tokens:
+        return []
     matches = []
     for path in paths:
-        compact = re.sub(r"[^a-z0-9]", "", path.lower())
-        hits = sum(token in compact for token in tokens)
-        if not tokens or not hits or (not partial and hits < len(tokens)):
+        tier = match_tier(tokens, path)
+        if tier not in tiers:
             continue
-        file_name = re.sub(r"[^a-z0-9]", "", path.rsplit("/", 1)[-1].lower())
-        in_name = all(token in file_name for token in tokens)
+        words = path_words(path)
+        name_words = path_words(path.rsplit("/", 1)[-1])
+        top_words = words if "/" not in path else path_words(path.split("/", 1)[0])
+        hits = sum(word_match(token, words) for token in tokens)
+        phrase = len(tokens) > 1 and word_match("".join(tokens), words)
+        if all(word_match(token, name_words) for token in tokens):
+            place = 0
+        elif all(word_match(token, top_words) for token in tokens):
+            place = 1
+        else:
+            place = 2
         matches.append({
             "repo": repo,
             "path": path,
             "url": f"https://github.com/{repo}/blob/HEAD/{quote(path)}",
-            "rank": (-hits, 0 if in_name else 1, len(path)),
+            "rank": (tier, 0 if phrase else 1, -hits, place, len(path)),
         })
     return matches
 
@@ -96,8 +143,9 @@ def search(query, limit=60):
             errors.append(f"{repo}: {error}")
     results = [match for repo, paths in trees.items() for match in rank_matches(query, repo, paths)]
     partial = False
-    if not results and len(query_tokens(query)) > 1:  # no file has every word: show the closest ones
-        results = [match for repo, paths in trees.items() for match in rank_matches(query, repo, paths, partial=True)]
+    if not results:  # no whole-word match: show the closest ones and say so
+        results = [match for repo, paths in trees.items()
+                   for match in rank_matches(query, repo, paths, tiers=(2, 3))]
         partial = bool(results)
     results.sort(key=lambda item: item["rank"])
     for item in results:

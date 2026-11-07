@@ -6,8 +6,10 @@ Only client-visible tech can be seen. A chatbot whose model is called from the
 site's own server is invisible here — fingerprint it from a chat transcript instead.
 """
 
+import html
 import json
 import re
+from datetime import datetime, timezone
 import urllib.error
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
@@ -105,6 +107,44 @@ POLICY_FILES = {
     "agent_card": "/.well-known/agent-card.json",
 }
 
+# Categories that put an AI system in conversation with visitors (the "chatbot" case of
+# EU AI Act Article 50(1)). Used only to group evidence, never to judge compliance.
+CHAT_CATEGORIES = ("AI support chat", "AI chatbot builder", "AI docs assistant", "Enterprise bot", "Voice AI")
+OTHER_AI_CATEGORIES = ("AI API in client code", "AI framework", "AI site builder")
+
+# Wording that tells a visitor AI is involved. Matched in the page's visible text only.
+# Finding none is reported as "none found in the page HTML", never as a missing notice:
+# chat widgets usually show their own notice after they open, which a page scan can't see.
+AI_WORDING_PATTERNS = [
+    r"(?<![\w-])(?:ai|a\.i\.)[- ](?:generated|created|assisted|powered|written|produced)(?![\w-])",
+    r"(?<![\w-])(?:generated|created|written|produced) (?:by|with|using) (?:an? )?(?:ai|artificial intelligence)(?![\w-])",
+    r"(?<![\w-])powered by (?:ai|gpt[\w.-]*|openai|chatgpt|artificial intelligence)(?![\w-])",
+    r"(?<![\w-])(?:ai|virtual|digital) (?:assistant|agent|chat ?bot)(?![\w-])",
+    r"(?<![\w-])(?:you are|you're) (?:chatting|talking|speaking) (?:with|to) (?:an? )?(?:ai|bot|chat ?bot|virtual assistant)(?![\w-])",
+    r"(?<![\w-])chat ?bot(?![\w-])",
+    r"(?<![\w-])artificial intelligence(?![\w-])",
+    r"(?<![\w-])ki[- ](?:generiert|erstellt|gestützt|assistent)\w*",
+    r"(?<![\w-])(?:von|durch|mit) (?:einer )?ki (?:generiert|erstellt)\w*",
+    r"(?<![\w-])künstliche[rn]? intelligenz(?![\w-])",
+    r"(?<![\w-])générée?s? (?:par|avec) (?:l'|une )?(?:ia|intelligence artificielle)(?![\w-])",
+    r"(?<![\w-])intelligence artificielle(?![\w-])",
+    r"(?<![\w-])assistant (?:virtuel|ia)(?![\w-])",
+    r"(?<![\w-])generad[oa]s? (?:por|con) (?:la )?(?:ia|inteligencia artificial)(?![\w-])",
+    r"(?<![\w-])inteligencia artificial(?![\w-])",
+    r"(?<![\w-])gegenereerd (?:door|met) (?:ai|kunstmatige intelligentie)(?![\w-])",
+    r"(?<![\w-])kunstmatige intelligentie(?![\w-])",
+    r"(?<![\w-])intelligenza artificiale(?![\w-])",
+    r"(?<![\w-])generat[oa] (?:da|con) (?:l'|un'?)?(?:ia|intelligenza artificiale)(?![\w-])",
+]
+AI_WORDING_RE = re.compile("|".join(f"(?:{pattern})" for pattern in AI_WORDING_PATTERNS), re.I)
+MAX_WORDING_MATCHES = 6
+TRANSPARENCY_DISCLAIMER = (
+    "Technical evidence, not legal advice. Whether a site needs an AI notice, and whether its wording "
+    "is enough (EU AI Act Article 50), is a legal question for the site owner and their adviser."
+)
+IMAGES_NOTE = ("Not checked by a site scan. Drop an image into Retrace to read its C2PA content "
+               "credentials and AI metadata.")
+
 
 def fetch(url, limit=2_000_000, timeout=12):
     request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT, "Accept": "*/*"})
@@ -178,7 +218,7 @@ def analyze_site(url):
             "so a tool loaded by an unread script may be missing."
         )
 
-    _match_signatures(haystacks, report)
+    found_tools = _match_signatures(haystacks, report)
     host = parsed.hostname or ""
     for suffix, name in HOST_SUFFIXES.items():
         if host == suffix or host.endswith("." + suffix):
@@ -191,7 +231,58 @@ def analyze_site(url):
         "A page scan only sees client-side tech. If a chatbot's model is called from the site's own server, "
         "paste a chat transcript into Reverse (text) or use Endpoint probe on an API you own."
     )
-    return report.to_dict(fallback_label="No AI tooling visible on the page")
+    result = report.to_dict(fallback_label="No AI tooling visible on the page")
+    result["transparency"] = transparency_evidence(found_tools, html_text, report.details, final_url)
+    return result
+
+
+def visible_text(html_text):
+    """Text a visitor can read on the page, plus alt / aria-label / title values
+    (chat launchers often carry their label there). Scripts, styles and comments are dropped."""
+    labels = re.findall(r"\b(?:alt|aria-label|title)=[\"']([^\"']{1,300})[\"']", html_text, re.I)
+    body = re.sub(r"<!--.*?-->", " ", html_text, flags=re.S)
+    body = re.sub(r"<(script|style|template|svg|noscript|head)\b[^>]*>.*?</\1\s*>", " ", body, flags=re.I | re.S)
+    # icon-font ligatures ("arrow_right_alt") are not words a visitor reads
+    body = re.sub(r"<(span|i)\b[^>]*class=[\"'][^\"']*(?:material-(?:icons|symbols)|icon)[^\"']*[\"'][^>]*>[\w\s]{0,40}</\1>",
+                  " ", body, flags=re.I)
+    body = re.sub(r"<[^>]+>", " ", body)
+    text_value = html.unescape(" ".join([body, *labels]))
+    return " ".join(text_value.split())
+
+
+def ai_wording(text_value):
+    """Phrases that tell a visitor AI is involved, each with the sentence around it."""
+    matches, seen = [], set()
+    for match in AI_WORDING_RE.finditer(text_value):
+        phrase = " ".join(match.group(0).split())
+        if phrase.lower() in seen:
+            continue
+        seen.add(phrase.lower())
+        start, end = max(0, match.start() - 70), min(len(text_value), match.end() + 70)
+        snippet = text_value[start:end].strip()
+        snippet = ("…" if start else "") + snippet + ("…" if end < len(text_value) else "")
+        matches.append({"phrase": phrase, "snippet": snippet})
+        if len(matches) >= MAX_WORDING_MATCHES:
+            break
+    return matches
+
+
+def transparency_evidence(found_tools, html_text, details, url, checked_at=None):
+    """What a reviewer needs for an AI-transparency check, as evidence only (no verdicts)."""
+    chatbots = [name for name, category in found_tools if category in CHAT_CATEGORIES]
+    other_ai = [name for name, category in found_tools if category in OTHER_AI_CATEGORIES]
+    checked_at = checked_at or datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+    return {
+        "url": url,
+        "checked_at": checked_at,
+        "chatbots": chatbots,
+        "other_ai": other_ai,
+        "ai_wording": ai_wording(visible_text(html_text)),
+        "ai_crawlers": details.get("AI crawlers in robots.txt", "robots.txt not found"),
+        "llms_txt": details.get("llms.txt") == "present",
+        "images": IMAGES_NOTE,
+        "disclaimer": TRANSPARENCY_DISCLAIMER,
+    }
 
 
 def page_code(html_text):
@@ -210,6 +301,8 @@ def page_code(html_text):
 
 
 def _match_signatures(haystacks, report):
+    """Add evidence for every known tool found; return [(name, category)] in signature order."""
+    found = []
     for name, category, patterns in SIGNATURES:
         for where, haystack in haystacks.items():
             if category in FIRST_PARTY_ONLY and where.startswith("third-party"):
@@ -228,7 +321,9 @@ def _match_signatures(haystacks, report):
             index = haystack.find(pattern)
             report.add(name, strength, f"{category}: '{pattern}' in {where[:120]}",
                        haystack[max(0, index - 80):index + 80])
+            found.append((name, category))
             break
+    return found
 
 
 def base_domain(hostname):

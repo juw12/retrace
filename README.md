@@ -29,6 +29,14 @@ Closing the window stops the app. It is also an installable PWA (browser menu, I
 Optional **"Ask my LLM"** (Settings tab; OpenAI, OpenRouter, Gemini, Anthropic, Groq, Ollama, LM Studio) adds a
 visual/textual reverse-prompt guess for files with no metadata.
 
+## Website evidence report
+
+A website scan now ends with an **AI transparency evidence** block: the AI chatbots and assistants seen in the page code, any wording about AI in the visible page text (with the sentence around it), the site's AI-crawler rules in robots.txt, and whether it publishes llms.txt. **Print / save PDF** turns any result into a one-page report with the date and URL.
+
+It is evidence, not a verdict. Finding no AI wording on the page doesn't mean a notice is missing: chat widgets usually show their own notice once opened, which a page scan can't see. Whether a site needs a notice under EU AI Act Article 50 is a legal question. This is not legal advice.
+
+**Look after many client sites?** Retrace Agency (batch scans, a branded report per client, local only) is being tested. [Join the waitlist](https://github.com/juw12/retrace/issues/new?title=Retrace%20Agency%20waitlist&body=Thanks%20for%20your%20interest%20in%20Retrace%20Agency%20%28batch%20AI-transparency%20evidence%20reports%20for%20client%20websites%29.%0A%0APlease%20don%27t%20post%20private%20or%20client%20data%20here.%20This%20issue%20is%20public.%0A%0A-%20Roughly%20how%20many%20client%20websites%20do%20you%20maintain%3F%0A-%20Country%3A%0A-%20Would%20you%20take%20the%20founding%20offer%20%28EUR%2015/month%20for%20life%2C%2030-day%20refund%29%3F%20yes%20/%20maybe%20/%20no%0A-%20What%20would%20you%20want%20in%20the%20client%20report%3F%0A) by opening a prefilled public issue. Please don't post private or client data there.
+
 ## Limits (be honest with yourself)
 - Exact prompts only survive if the file kept its metadata. Screenshots and social-media re-uploads strip it; then you only get the LLM's guess.
 - AI-text detection is probabilistic and easy to fool.

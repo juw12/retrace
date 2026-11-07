@@ -190,6 +190,64 @@ class SiteTests(unittest.TestCase):
         self.assertIn("intercomsettings", code)
 
 
+class TransparencyEvidenceTests(unittest.TestCase):
+    def test_finds_ai_notice_wording_with_context(self):
+        page = ("<html><body><div class='chat'>You are chatting with an AI assistant. "
+                "Answers are AI-generated and may be wrong.</div></body></html>")
+        matches = site.ai_wording(site.visible_text(page))
+        phrases = [match["phrase"].lower() for match in matches]
+        self.assertIn("ai-generated", phrases)
+        self.assertTrue(any("chatting with an ai" in phrase for phrase in phrases))
+        self.assertTrue(all(match["phrase"] in match["snippet"] for match in matches))
+
+    def test_other_languages(self):
+        for wording in ("Diese Antwort wurde von KI generiert.", "Texte généré par IA.",
+                        "Contenido generado por IA.", "Dit is gegenereerd door AI.",
+                        "Basato su intelligenza artificiale."):
+            with self.subTest(wording=wording):
+                self.assertTrue(site.ai_wording(wording), wording)
+
+    def test_words_that_merely_contain_ai_do_not_match(self):
+        page = ("<p>Email our team in Thailand or Dubai. We maintain chairs, said Aidan. "
+                "AIM high with our domain names and certain paid plans.</p>")
+        self.assertEqual(site.ai_wording(site.visible_text(page)), [])
+
+    def test_script_text_is_ignored_but_labels_count(self):
+        page = ('<script>var notice = "AI-generated";</script><style>.x{}</style>'
+                '<!-- AI-generated --><button aria-label="Open AI assistant">Chat</button>')
+        text_value = site.visible_text(page)
+        self.assertNotIn("var notice", text_value)
+        phrases = [match["phrase"].lower() for match in site.ai_wording(text_value)]
+        self.assertEqual(phrases, ["ai assistant"])
+
+    def test_icon_ligatures_are_dropped(self):
+        page = '<p>Try our AI agent <span class="material-symbols-outlined">arrow_right_alt</span> today</p>'
+        self.assertNotIn("arrow_right_alt", site.visible_text(page))
+
+    def test_chatbot_without_wording_is_evidence_not_a_verdict(self):
+        found = [("Tidio (Lyro AI)", "AI support chat"), ("Wix (offers AI site builder)", "Site builder"),
+                 ("OpenAI API (called from the browser)", "AI API in client code")]
+        evidence = site.transparency_evidence(found, "<p>Welcome to our bakery.</p>",
+                                              {"AI crawlers in robots.txt": "GPTBot: blocked"},
+                                              "https://bakery.example", checked_at="2026-11-07T07:00:00Z")
+        self.assertEqual(evidence["chatbots"], ["Tidio (Lyro AI)"])
+        self.assertEqual(evidence["other_ai"], ["OpenAI API (called from the browser)"])
+        self.assertEqual(evidence["ai_wording"], [])
+        self.assertEqual(evidence["ai_crawlers"], "GPTBot: blocked")
+        self.assertFalse(evidence["llms_txt"])
+        self.assertEqual(evidence["checked_at"], "2026-11-07T07:00:00Z")
+        self.assertIn("not legal advice", evidence["disclaimer"])
+        wording = json.dumps(evidence).lower()
+        for verdict_word in ("missing", "non-compliant", "noncompliant", "violation", "fails"):
+            self.assertNotIn(verdict_word, wording)
+
+    def test_match_signatures_reports_what_it_found(self):
+        report = site.Report("site")
+        page = '<script src="https://code.tidio.co/abc.js"></script>'
+        found = site._match_signatures({"page HTML": site.page_code(page)}, report)
+        self.assertEqual(found, [("Tidio (Lyro AI)", "AI support chat")])
+
+
 class ProbeTests(unittest.TestCase):
     def test_family_detection(self):
         self.assertEqual(probe.families_in("I am Claude, made by Anthropic."), ["Anthropic Claude"])

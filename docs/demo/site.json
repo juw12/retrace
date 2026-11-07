@@ -43,5 +43,31 @@
  "notes": [
   "A page scan only sees client-side tech. If a chatbot's model is called from the site's own server, paste a chat transcript into Reverse (text) or use Endpoint probe on an API you own."
  ],
- "raw": {}
+ "raw": {},
+ "transparency": {
+  "url": "https://www.tidio.com",
+  "checked_at": "2026-11-07T07:10:59Z",
+  "chatbots": [
+   "Tidio (Lyro AI)"
+  ],
+  "other_ai": [],
+  "ai_wording": [
+   {
+    "phrase": "AI Agent",
+    "snippet": "See the results Tidio ranks #1 in G2's AI Agent Evaluations EN Notifications Welcome to Tidio Tell us what you need a…"
+   },
+   {
+    "phrase": "CHATBOT",
+    "snippet": "…tomation Start for free Available on: Browser Android iOS Windows Mac CHATBOT Best AI Chatbots How to Create a Chatbot Best Chatbot Apps Best Chatb…"
+   },
+   {
+    "phrase": "AI Chatbot",
+    "snippet": "…How to Create a Chatbot Best Chatbot Apps Best Chatbot Builders Best AI Chatbot Platforms LIVE CHAT Free Live Chat Software How to Add Live Chat to a…"
+   }
+  ],
+  "ai_crawlers": "none named (default rules apply)",
+  "llms_txt": true,
+  "images": "Not checked by a site scan. Drop an image into Retrace to read its C2PA content credentials and AI metadata.",
+  "disclaimer": "Technical evidence, not legal advice. Whether a site needs an AI notice, and whether its wording is enough (EU AI Act Article 50), is a legal question for the site owner and their adviser."
+ }
 }

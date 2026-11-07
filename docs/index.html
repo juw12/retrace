@@ -467,6 +467,93 @@ $("#set-save").addEventListener("click", () => {
 const DEMO = location.hostname.endsWith("github.io") || new URLSearchParams(location.search).has("demo");
 const DEMO_FILES = { text: "demo/text.json", site: "demo/site.json", library: "demo/library.json" };
 
+/* Online demo: search the same public collections the app uses, straight from the browser.
+   Mirrors analyzers/library.py (same repos, file types, filler words and ranking). */
+const LIBRARY_REPOS = [
+  "x1xhlol/system-prompts-and-models-of-ai-tools",
+  "elder-plinius/CL4R1T4S",
+  "jujumilk3/leaked-system-prompts",
+  "asgeirtj/system_prompts_leaks",
+  "anthropics/skills",
+];
+const LIBRARY_EXTENSIONS = new Set([".txt", ".md", ".mdx", ".json", ".yaml", ".yml", ".xml", ".js", ".ts", ".py", ""]);
+const LIBRARY_FILLER = new Set(["app", "apps", "ai", "the", "an", "and", "for", "of", "prompt", "prompts", "system",
+  "leak", "leaked", "agent", "agents", "tool", "tools", "assistant", "chatbot", "bot", "model", "models", "ide", "desktop"]);
+const LIBRARY_CACHE_MS = 24 * 3600 * 1000;
+
+function libraryTokens(query) {
+  const tokens = (query.toLowerCase().match(/[a-z0-9]+/g) || []).filter((token) => token.length > 1);
+  const meaningful = tokens.filter((token) => !LIBRARY_FILLER.has(token));
+  return meaningful.length ? meaningful : tokens;
+}
+
+async function libraryPaths(repo) {
+  const cacheKey = "retrace-tree:" + repo;
+  try {
+    const cached = JSON.parse(localStorage.getItem(cacheKey) || "null");
+    if (cached && Date.now() - cached.at < LIBRARY_CACHE_MS) return cached.paths;
+  } catch (error) { /* ignore a broken cache entry */ }
+  const response = await fetch(`https://api.github.com/repos/${repo}/git/trees/HEAD?recursive=1`);
+  if (response.status === 403 || response.status === 429) {
+    throw new Error("GitHub's hourly limit for anonymous lookups was reached. Try again in an hour, or download Retrace.");
+  }
+  if (!response.ok) throw new Error(`GitHub returned ${response.status}`);
+  const tree = await response.json();
+  const paths = (tree.tree || [])
+    .filter((item) => item.type === "blob")
+    .map((item) => item.path)
+    .filter((path) => {
+      const name = path.split("/").pop();
+      const dot = name.lastIndexOf(".");
+      return LIBRARY_EXTENSIONS.has(dot > 0 ? name.slice(dot).toLowerCase() : "");
+    });
+  try { localStorage.setItem(cacheKey, JSON.stringify({ at: Date.now(), paths })); } catch (error) { /* storage full */ }
+  return paths;
+}
+
+function libraryMatches(tokens, repo, paths, partial) {
+  const matches = [];
+  for (const path of paths) {
+    const compact = path.toLowerCase().replace(/[^a-z0-9]/g, "");
+    const hits = tokens.filter((token) => compact.includes(token)).length;
+    if (!tokens.length || !hits || (!partial && hits < tokens.length)) continue;
+    const fileName = path.split("/").pop().toLowerCase().replace(/[^a-z0-9]/g, "");
+    const inName = tokens.every((token) => fileName.includes(token));
+    const url = `https://github.com/${repo}/blob/HEAD/${path.split("/").map(encodeURIComponent).join("/")}`;
+    matches.push({ repo, path, url, rank: [-hits, inName ? 0 : 1, path.length] });
+  }
+  return matches;
+}
+
+async function demoLibrarySearch(query) {
+  const tokens = libraryTokens(query);
+  const errors = [];
+  const trees = {};
+  await Promise.all(LIBRARY_REPOS.map(async (repo) => {
+    try {
+      trees[repo] = await libraryPaths(repo);
+    } catch (error) {
+      errors.push(`${repo}: ${error.message}`);
+    }
+  }));
+  if (!Object.keys(trees).length) throw new Error(errors[0] ? errors[0].split(": ").slice(1).join(": ") : "Could not reach GitHub.");
+  let results = Object.entries(trees).flatMap(([repo, paths]) => libraryMatches(tokens, repo, paths, false));
+  let partial = false;
+  if (!results.length && tokens.length > 1) {
+    results = Object.entries(trees).flatMap(([repo, paths]) => libraryMatches(tokens, repo, paths, true));
+    partial = results.length > 0;
+  }
+  const order = (a, b) => a.rank[0] - b.rank[0] || a.rank[1] - b.rank[1] || a.rank[2] - b.rank[2];
+  results.sort(order);
+  return {
+    query,
+    results: results.slice(0, 60).map(({ rank, ...item }) => item),
+    total: results.length,
+    errors,
+    partial,
+  };
+}
+
 async function demoApi(path, body) {
   if (path.startsWith("/api/library/file")) {
     const params = new URLSearchParams(path.split("?")[1]);
@@ -481,7 +568,7 @@ async function demoApi(path, body) {
   if (path === "/api/text" && body && body.text === EXAMPLES.text) key = "text";
   if (path === "/api/site" && body && body.url === EXAMPLES.site) key = "site";
   if (query === EXAMPLES.app) key = "library";
-  if (query !== null && query !== EXAMPLES.app) return { query, results: [], total: 0, errors: [] };
+  if (query !== null && query !== EXAMPLES.app) return demoLibrarySearch(query);
   if (!key) {
     throw new Error("The online demo only runs the three examples. Download Retrace (free, runs on your computer) to analyze your own text, images, websites and APIs.");
   }
@@ -713,6 +800,9 @@ async function librarySection(query, title) {
     return card;
   }
   const shown = data.results.length;
+  if (data.partial) {
+    card.append(noteBox("No file name has every word you typed, so these are the closest matches."));
+  }
   card.append(el("p", { class: "summary" }, `${data.total} files found${data.total > shown ? `, showing the first ${shown}` : ""}. Select one to read it here.`));
   const viewerHead = el("div", { class: "viewer-head" });
   const viewer = el("pre", {});

@@ -304,6 +304,7 @@
  ],
  "total": 345,
  "errors": [],
+ "partial": false,
  "sources": {
   "x1xhlol/system-prompts-and-models-of-ai-tools": "System prompts + tool definitions of AI coding agents & apps",
   "elder-plinius/CL4R1T4S": "System prompts of major AI assistants",

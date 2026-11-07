@@ -209,6 +209,13 @@ class LibraryTests(unittest.TestCase):
         matches = library.rank_matches("claude code", "x/y", paths)
         self.assertEqual([m["path"] for m in matches], ["Claude Code/claude-code-system-prompt.txt"])
         self.assertEqual(len(library.rank_matches("cursor", "x/y", paths)), 2)
+        # filler words people add ("cursor app") must not hide the files
+        self.assertEqual(len(library.rank_matches("cursor app", "x/y", paths)), 2)
+        self.assertEqual(library.query_tokens("Cursor AI app"), ["cursor"])
+        self.assertEqual(library.query_tokens("system prompts"), ["system", "prompts"])
+        # partial mode: closest matches when no file has every word
+        self.assertEqual(library.rank_matches("cursor windsurf", "x/y", paths), [])
+        self.assertEqual(len(library.rank_matches("cursor windsurf", "x/y", paths, partial=True)), 2)
 
 
 if __name__ == "__main__":

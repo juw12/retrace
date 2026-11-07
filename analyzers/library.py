@@ -54,37 +54,56 @@ def repo_paths(repo):
     return paths
 
 
-def rank_matches(query, repo, paths):
+# Words people add to an app name that file names in the collections don't contain ("cursor app").
+FILLER = {"app", "apps", "ai", "the", "an", "and", "for", "of", "prompt", "prompts", "system", "leak", "leaked",
+          "agent", "agents", "tool", "tools", "assistant", "chatbot", "bot", "model", "models", "ide", "desktop"}
+
+
+def query_tokens(query):
     tokens = [token for token in re.findall(r"[a-z0-9]+", query.lower()) if len(token) > 1]
+    meaningful = [token for token in tokens if token not in FILLER]
+    return meaningful or tokens
+
+
+def rank_matches(query, repo, paths, partial=False):
+    """Files whose path contains every query word (or, with partial=True, at least one)."""
+    tokens = query_tokens(query)
     matches = []
     for path in paths:
         compact = re.sub(r"[^a-z0-9]", "", path.lower())
-        if tokens and all(token in compact for token in tokens):
-            file_name = re.sub(r"[^a-z0-9]", "", path.rsplit("/", 1)[-1].lower())
-            in_name = all(token in file_name for token in tokens)
-            matches.append({
-                "repo": repo,
-                "path": path,
-                "url": f"https://github.com/{repo}/blob/HEAD/{quote(path)}",
-                "rank": (0 if in_name else 1, len(path)),
-            })
+        hits = sum(token in compact for token in tokens)
+        if not tokens or not hits or (not partial and hits < len(tokens)):
+            continue
+        file_name = re.sub(r"[^a-z0-9]", "", path.rsplit("/", 1)[-1].lower())
+        in_name = all(token in file_name for token in tokens)
+        matches.append({
+            "repo": repo,
+            "path": path,
+            "url": f"https://github.com/{repo}/blob/HEAD/{quote(path)}",
+            "rank": (-hits, 0 if in_name else 1, len(path)),
+        })
     return matches
 
 
 def search(query, limit=60):
-    results, errors = [], []
+    errors, trees = [], {}
     with ThreadPoolExecutor(max_workers=len(REPOS)) as pool:
         jobs = {repo: pool.submit(repo_paths, repo) for repo in REPOS}
     for repo, job in jobs.items():
         try:
-            results += rank_matches(query, repo, job.result())
+            trees[repo] = job.result()
         except Exception as error:
             errors.append(f"{repo}: {error}")
+    results = [match for repo, paths in trees.items() for match in rank_matches(query, repo, paths)]
+    partial = False
+    if not results and len(query_tokens(query)) > 1:  # no file has every word: show the closest ones
+        results = [match for repo, paths in trees.items() for match in rank_matches(query, repo, paths, partial=True)]
+        partial = bool(results)
     results.sort(key=lambda item: item["rank"])
     for item in results:
         item.pop("rank")
     return {"query": query, "results": results[:limit], "total": len(results), "errors": errors,
-            "sources": REPOS}
+            "partial": partial, "sources": REPOS}
 
 
 def fetch_file(repo, path):

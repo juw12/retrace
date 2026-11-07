@@ -185,6 +185,8 @@
   .note.error { background: var(--danger-bg); border-color: transparent; color: var(--danger); }
   .demo-banner { margin: -8px 0 20px; color: var(--text); background: var(--accent-soft); border-color: transparent; }
   .result-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 18px; }
+  @media (max-width: 520px) { .result-actions .btn { flex: 1 1 100%; justify-content: center; min-height: 44px; } }
+  .confidence-help { margin-top: -4px; }
   .loading { display: flex; align-items: center; gap: 12px; padding: 20px 22px; color: var(--muted); }
   .loading .elapsed { margin-left: auto; font-size: 13px; font-variant-numeric: tabular-nums; }
   .spinner { width: 18px; height: 18px; border: 2px solid var(--line-strong); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; }
@@ -217,6 +219,7 @@
   /* AI transparency evidence + printable report */
   .transparency { border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 8px; padding: 2px 14px 12px; margin-top: 18px; }
   .transparency .section-title { margin-top: 14px; }
+  .transparency .glance { margin: 6px 0 4px; font-size: 14.5px; font-weight: 500; color: var(--text); }
   .wording { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 14px; }
   .wording q { color: var(--muted); font-size: 13.5px; overflow-wrap: anywhere; }
   .waitlist { font-size: 13.5px; color: var(--muted); margin: 14px 0 0; }
@@ -790,6 +793,12 @@ function noteBox(text) {
 
 /* ---------- result rendering ---------- */
 const CONFIDENCE = { high: "High confidence", medium: "Medium confidence", low: "Low confidence", none: "No match" };
+// Mirrors analyzers/report.py: confidence comes from the strongest single signal.
+const CONFIDENCE_HELP = {
+  high: "High confidence: at least one direct trace points to this tool.",
+  medium: "Medium confidence: a clear but not conclusive signal, or several weaker ones that agree.",
+  low: "Low confidence: only weak hints, so treat this as a lead to check.",
+};
 const KIND_LABEL = { image: "Image", text: "Text", site: "Website", endpoint: "API" };
 const NONE_SUMMARY = {
   image: "This file carries no AI metadata. That is common for screenshots and re-uploads, so it does not prove a person made it.",
@@ -802,7 +811,8 @@ function summarize(report) {
   if (report.verdict.confidence === "none") return NONE_SUMMARY[report.kind] || "";
   const main = report.evidence.find((item) => item.candidate && item.strength === "strong")
     || report.evidence.find((item) => item.candidate);
-  return main ? `Main signal: ${main.signal}.` : "";
+  // Long script URLs stay in "Why we think so"; the summary line stays one readable sentence.
+  return main ? `Main signal: ${main.signal.replace(/\s+https?:\/\/\S+/g, "")}.` : "";
 }
 
 function copyButton(textValue, label = "Copy") {
@@ -847,8 +857,15 @@ function transparencyBlock(evidence) {
   } else {
     wording = el("p", { class: "summary" }, "None found in the page HTML.");
   }
+  const phraseCount = evidence.ai_wording.length;
+  const glance = [
+    evidence.chatbots.length ? `Chat assistant: ${evidence.chatbots.join(", ")}` : "No chat assistant in the page code",
+    phraseCount ? `${phraseCount} AI ${phraseCount === 1 ? "phrase" : "phrases"} quoted from the page text` : "No AI wording in the page text",
+    evidence.llms_txt ? "llms.txt present" : "No llms.txt",
+  ].join(" · ");
   return el("section", { class: "transparency", "aria-label": "AI transparency evidence" },
     sectionTitle("AI transparency evidence"),
+    el("p", { class: "glance" }, glance),
     keyValueList(rows),
     sectionTitle("Wording about AI in the page text"),
     wording,
@@ -879,11 +896,15 @@ function renderReport(report, extra) {
     el("div", {},
       el("div", { class: "eyebrow" }, `${KIND_LABEL[report.kind] || "Result"} analysis`),
       el("h2", { class: "verdict" }, report.verdict.label)),
-    el("span", { class: "badge " + report.verdict.confidence }, CONFIDENCE[report.verdict.confidence]));
+    el("span", { class: "badge " + report.verdict.confidence, title: CONFIDENCE_HELP[report.verdict.confidence] || "" },
+      CONFIDENCE[report.verdict.confidence]));
   if (extra) head.prepend(extra);
   card.append(head);
   const summary = summarize(report);
   if (summary) card.append(el("p", { class: "summary" }, summary));
+  if (CONFIDENCE_HELP[report.verdict.confidence]) {
+    card.append(el("p", { class: "meter-caption confidence-help" }, CONFIDENCE_HELP[report.verdict.confidence]));
+  }
 
   if (report.prompt && report.prompt.positive) {
     card.append(sectionTitle("Recovered prompt"));
@@ -919,6 +940,9 @@ function renderReport(report, extra) {
 
   const kvList = (entries) => el("dl", { class: "kv" }, entries.flatMap(([key, value]) => [el("dt", {}, key), el("dd", {}, String(value))]));
   let details = Object.entries(report.details || {});
+  // Rows already shown in the evidence block are not repeated under Details.
+  const inEvidence = ["URL", "AI crawlers in robots.txt", "llms.txt"];
+  if (report.transparency) details = details.filter(([key]) => !inEvidence.includes(key));
   if (report.kind === "text") {
     const keyFacts = ["Hidden / invisible characters"];
     if (typeof report.ai_likelihood === "number") {
@@ -941,7 +965,11 @@ function renderReport(report, extra) {
     details = [];
     if (stats.length) card.append(el("details", {}, el("summary", {}, "Text statistics"), kvList(stats)));
   }
-  if (details.length) {
+  if (details.length && report.transparency) {
+    // Website scans lead with the evidence block; raw page facts stay one click away.
+    card.append(el("details", {}, el("summary", {}, "Page details", el("span", { class: "count" }, `${details.length} facts`)),
+      kvList(details)));
+  } else if (details.length) {
     card.append(sectionTitle("Details"));
     card.append(kvList(details));
   }

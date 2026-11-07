@@ -236,35 +236,75 @@ def analyze_site(url):
     return result
 
 
+SNIPPET_CHARS = 180
+BLOCK_TAG_RE = re.compile(
+    r"</?(?:p|div|li|ul|ol|h[1-6]|br|tr|td|th|section|article|header|footer|nav|main|aside|"
+    r"button|label|option|figcaption|blockquote|dt|dd)\b[^>]*>",
+    re.I,
+)
+
+
 def visible_text(html_text):
     """Text a visitor can read on the page, plus alt / aria-label / title values
-    (chat launchers often carry their label there). Scripts, styles and comments are dropped."""
+    (chat launchers often carry their label there). Scripts, styles and comments are dropped.
+    Each block (paragraph, heading, list item, link, button...) ends up on its own line, so a
+    quote can stay inside the sentence it came from instead of running into the next menu item."""
     labels = re.findall(r"\b(?:alt|aria-label|title)=[\"']([^\"']{1,300})[\"']", html_text, re.I)
     body = re.sub(r"<!--.*?-->", " ", html_text, flags=re.S)
     body = re.sub(r"<(script|style|template|svg|noscript|head)\b[^>]*>.*?</\1\s*>", " ", body, flags=re.I | re.S)
     # icon-font ligatures ("arrow_right_alt") are not words a visitor reads
     body = re.sub(r"<(span|i)\b[^>]*class=[\"'][^\"']*(?:material-(?:icons|symbols)|icon)[^\"']*[\"'][^>]*>[\w\s]{0,40}</\1>",
                   " ", body, flags=re.I)
+    body = re.sub(BLOCK_TAG_RE, "\n", body)
     body = re.sub(r"<[^>]+>", " ", body)
-    text_value = html.unescape(" ".join([body, *labels]))
-    return " ".join(text_value.split())
+    lines = html.unescape("\n".join([body, *labels])).split("\n")
+    return "\n".join(line for line in (" ".join(raw.split()) for raw in lines) if line)
+
+
+def _prose_score(line):
+    """Higher for a line that reads like a sentence, lower for a menu or button label."""
+    words = line.split()
+    lower_words = sum(1 for word in words if word[:1].islower())
+    return (len(words) >= 6) * 2 + (lower_words >= 3) + bool(re.search(r"[.!?:]", line))
+
+
+def _quote_around(line, start, end):
+    """The sentence holding line[start:end]. Long sentences are cut to about SNIPPET_CHARS
+    on word boundaries, with an ellipsis only where a sentence was cut."""
+    left = max(line.rfind(stop, 0, start) for stop in (". ", "! ", "? "))
+    left = 0 if left < 0 else left + 2
+    right_candidates = [pos for pos in (line.find(stop, end) for stop in (". ", "! ", "? ")) if pos >= 0]
+    right = min(right_candidates) + 1 if right_candidates else len(line)
+    cut_left = cut_right = False
+    if right - left > SNIPPET_CHARS:
+        half = max(20, (SNIPPET_CHARS - (end - start)) // 2)
+        if start - left > half:
+            left = start - half
+            left = line.index(" ", left) + 1 if " " in line[left:start] else left
+            cut_left = True
+        if right - end > half:
+            right = end + half
+            right = line.rindex(" ", end, right) if " " in line[end:right] else right
+            cut_right = True
+    quote = line[left:right].strip()
+    return ("…" if cut_left else "") + quote + ("…" if cut_right else "")
 
 
 def ai_wording(text_value):
-    """Phrases that tell a visitor AI is involved, each with the sentence around it."""
-    matches, seen = [], set()
-    for match in AI_WORDING_RE.finditer(text_value):
-        phrase = " ".join(match.group(0).split())
-        if phrase.lower() in seen:
-            continue
-        seen.add(phrase.lower())
-        start, end = max(0, match.start() - 70), min(len(text_value), match.end() + 70)
-        snippet = text_value[start:end].strip()
-        snippet = ("…" if start else "") + snippet + ("…" if end < len(text_value) else "")
-        matches.append({"phrase": phrase, "snippet": snippet})
-        if len(matches) >= MAX_WORDING_MATCHES:
-            break
-    return matches
+    """Phrases that tell a visitor AI is involved, each quoted inside the sentence it appears in.
+    When a phrase appears several times, the occurrence that reads most like a sentence is quoted
+    (a disclosure line rather than a navigation label)."""
+    occurrences = {}
+    for line in text_value.split("\n"):
+        for match in AI_WORDING_RE.finditer(line):
+            phrase = " ".join(match.group(0).split())
+            occurrences.setdefault(phrase.lower(), []).append((phrase, line, match.start(), match.end()))
+            if len(occurrences) > MAX_WORDING_MATCHES * 4:
+                break
+    best = [max(found, key=lambda item: _prose_score(item[1])) for found in occurrences.values()]
+    best.sort(key=lambda item: -_prose_score(item[1]))  # sentences before bare menu labels
+    return [{"phrase": phrase, "snippet": _quote_around(line, start, end)}
+            for phrase, line, start, end in best[:MAX_WORDING_MATCHES]]
 
 
 def transparency_evidence(found_tools, html_text, details, url, checked_at=None):

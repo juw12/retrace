@@ -46,7 +46,7 @@
  "raw": {},
  "transparency": {
   "url": "https://www.tidio.com",
-  "checked_at": "2026-11-07T07:22:11Z",
+  "checked_at": "2026-11-07T08:36:43Z",
   "chatbots": [
    "Tidio (Lyro AI)"
   ],
@@ -54,15 +54,15 @@
   "ai_wording": [
    {
     "phrase": "AI Agent",
-    "snippet": "See the results Tidio ranks #1 in G2's AI Agent Evaluations EN Notifications Welcome to Tidio Tell us what you need a…"
+    "snippet": "of repetitive tasks handled by Lyro AI Agent"
    },
    {
-    "phrase": "CHATBOT",
-    "snippet": "…tomation Start for free Available on: Browser Android iOS Windows Mac CHATBOT Best AI Chatbots How to Create a Chatbot Best Chatbot Apps Best Chatb…"
+    "phrase": "chatbot",
+    "snippet": "Tidio - AI customer service chatbot software - home page"
    },
    {
     "phrase": "AI Chatbot",
-    "snippet": "…How to Create a Chatbot Best Chatbot Apps Best Chatbot Builders Best AI Chatbot Platforms LIVE CHAT Free Live Chat Software How to Add Live Chat to a…"
+    "snippet": "Best AI Chatbot Platforms"
    }
   ],
   "ai_crawlers": "none named (default rules apply)",

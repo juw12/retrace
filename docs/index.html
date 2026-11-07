@@ -44,6 +44,11 @@
   svg.icon { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   [hidden] { display: none !important; }
+  h1, h2, h3, .verdict { text-wrap: balance; }
+  p, .summary, .note span { text-wrap: pretty; }
+  kbd { font: 12px/1 var(--mono); color: var(--muted); border: 1px solid var(--line-strong); border-bottom-width: 2px;
+    border-radius: 4px; padding: 3px 5px; background: var(--surface); }
+  .shortcut { font-size: 12.5px; color: var(--muted); display: inline-flex; gap: 4px; align-items: center; }
 
   /* top bar */
   .topbar { position: sticky; top: 0; z-index: 10; background: var(--surface); border-bottom: 1px solid var(--line); }
@@ -149,6 +154,16 @@
   .fill { height: 100%; background: var(--accent); border-radius: 3px; }
   .meter { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; font-size: 14px; font-weight: 600; max-width: 520px; }
   .meter .track { height: 8px; }
+  .meter-caption { margin: 6px 0 0; font-size: 13.5px; color: var(--muted); max-width: 75ch; }
+  .lib-tools { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 14px 0 6px; }
+  .lib-tools input { max-width: 340px; }
+  .lib-tools .count { font-size: 13px; color: var(--muted); }
+  .error-card { padding: 18px 20px; border-color: var(--danger-bg); }
+  .error-card .error-title { display: flex; gap: 10px; align-items: flex-start; color: var(--danger); font-weight: 650; }
+  .error-card .error-title svg.icon { margin-top: 2px; }
+  .error-card p { margin: 6px 0 0 30px; color: var(--text); font-size: 14px; }
+  .error-card details { margin: 10px 0 0 30px; }
+  .error-card details pre { margin-top: 0; }
   details { border-top: 1px solid var(--line); margin-top: 18px; }
   details > summary { cursor: pointer; font-weight: 600; font-size: 14.5px; min-height: 44px; display: flex; align-items: center; gap: 8px; list-style: none; }
   details > summary::-webkit-details-marker { display: none; }
@@ -171,6 +186,7 @@
   .demo-banner { margin: -8px 0 20px; color: var(--text); background: var(--accent-soft); border-color: transparent; }
   .result-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 18px; }
   .loading { display: flex; align-items: center; gap: 12px; padding: 20px 22px; color: var(--muted); }
+  .loading .elapsed { margin-left: auto; font-size: 13px; font-variant-numeric: tabular-nums; }
   .spinner { width: 18px; height: 18px; border: 2px solid var(--line-strong); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
   @media (prefers-reduced-motion: reduce) { .spinner { animation: none; } * { transition: none !important; } }
@@ -208,6 +224,7 @@
     .page-head h1 { font-size: 24px; }
     .composer-bar .btn { flex: 1; min-height: 44px; }
     .detected { width: 100%; }
+    .shortcut { display: none; }
     .how { grid-template-columns: 1fr; }
     .form-grid { grid-template-columns: 1fr; }
     .kv { grid-template-columns: 1fr; }
@@ -264,7 +281,8 @@
           <svg class="icon" aria-hidden="true"><use href="#i-upload"/></svg>Add image
           <input type="file" id="file" accept="image/png,image/jpeg,image/webp" hidden>
         </label>
-        <button class="btn primary" id="go" type="button" disabled>Analyze</button>
+        <span class="shortcut" aria-hidden="true"><kbd>Ctrl</kbd>+<kbd>Enter</kbd></span>
+        <button class="btn primary" id="go" type="button" disabled aria-keyshortcuts="Control+Enter">Analyze</button>
       </div>
     </div>
 
@@ -490,13 +508,50 @@ async function api(path, body) {
 }
 
 function loading(container, message) {
-  const node = el("div", { class: "card loading", role: "status" }, el("span", { class: "spinner" }), message);
+  const elapsed = el("span", { class: "elapsed", "aria-hidden": "true" });
+  const node = el("div", { class: "card loading", role: "status" }, el("span", { class: "spinner" }), el("span", {}, message), elapsed);
+  const started = Date.now();
+  const timer = setInterval(() => {
+    if (!node.isConnected) {
+      clearInterval(timer);
+      return;
+    }
+    const seconds = Math.round((Date.now() - started) / 1000);
+    if (seconds >= 3) elapsed.textContent = `${seconds} s`;
+  }, 1000);
   container.append(node);
   return node;
 }
 
+function friendlyError(message) {
+  const text = String(message || "Something went wrong.");
+  const rules = [
+    [/not running/i, "Retrace is not running", "Start it again with python app.py, then retry."],
+    [/online demo only/i, "This needs the downloadable app", null],
+    [/getaddrinfo|Name or service not known|nodename|No address|11001/i, "That website address could not be found",
+      "Check the spelling of the address. If it is right, the site may be offline."],
+    [/timed out|timeout/i, "The website took too long to answer", "Try again in a moment. Some sites block automated visitors."],
+    [/Tunnel connection failed|ProxyError|407|502|503|504|Bad Gateway/i, "Could not reach that website",
+      "The address may be wrong or the site may be down. On a work network, a proxy can also block it."],
+    [/CERTIFICATE|SSL/i, "The website's security certificate could not be verified", "The site may be misconfigured. Try its http:// address."],
+    [/HTTP 40[13]/i, "The website refused the request", "It blocks automated visitors, so its code cannot be scanned from here."],
+    [/HTTP 404/i, "That page does not exist", "Check the address, or try the site's home page."],
+    [/HTTP 429/i, "The service is rate-limiting requests", "Wait a minute and try again."],
+    [/HTTP 5\d\d/i, "The server had a problem", "Try again in a moment."],
+    [/Set a model name|api key|401|Unauthorized/i, "Your AI model is not set up correctly", "Check the base URL, model name and key in Settings."],
+  ];
+  for (const [pattern, title, advice] of rules) {
+    if (pattern.test(text)) return { title, advice: advice || text, detail: advice ? text : null };
+  }
+  return { title: "Something went wrong", advice: null, detail: text };
+}
+
 function errorBox(error) {
-  return el("div", { class: "note error", role: "alert" }, icon("alert"), el("span", {}, String(error.message || error)));
+  const { title, advice, detail } = friendlyError(error && error.message ? error.message : error);
+  return el("div", { class: "card error-card", role: "alert" },
+    el("div", { class: "error-title" }, icon("alert"), el("span", {}, title)),
+    advice ? el("p", {}, advice) : null,
+    detail ? el("details", {}, el("summary", {}, "Technical details"), el("pre", {}, detail)) : null);
 }
 
 function noteBox(text) {
@@ -581,10 +636,15 @@ function renderReport(report, extra) {
   if (report.kind === "text") {
     const keyFacts = ["Hidden / invisible characters"];
     if (typeof report.ai_likelihood === "number") {
-      card.append(sectionTitle("AI-likelihood (heuristic)"));
-      card.append(el("div", { class: "meter" },
+      const traced = report.verdict.confidence === "high" || report.verdict.confidence === "medium";
+      card.append(sectionTitle("Writing-style score"));
+      card.append(el("div", { class: "meter", role: "meter", "aria-valuemin": "0", "aria-valuemax": "100",
+        "aria-valuenow": String(report.ai_likelihood), "aria-label": "Writing-style score" },
         el("div", { class: "track" }, el("div", { class: "fill", style: `width:${Math.max(2, report.ai_likelihood)}%` })),
         el("span", {}, `${report.ai_likelihood} / 100`)));
+      card.append(el("p", { class: "meter-caption" }, traced
+        ? "How AI-like the wording reads. The source above comes from a direct trace in the text, which outweighs this score."
+        : "How AI-like the wording reads, from phrasing, structure and rhythm. A rough guide, not a verdict."));
     }
     const facts = details.filter(([key]) => keyFacts.includes(key));
     const stats = details.filter(([key]) => !keyFacts.includes(key) && key !== "Heuristic AI-likelihood");
@@ -621,8 +681,19 @@ function renderReport(report, extra) {
   }
   card.append(el("div", { class: "result-actions" },
     copyButton(`${report.verdict.label} (${CONFIDENCE[report.verdict.confidence]}). ${summary}`, "Copy summary"),
-    el("button", { class: "btn small", type: "button", onclick: () => download(report) }, "Download report")));
+    el("button", { class: "btn small", type: "button", onclick: () => download(report) }, "Download report"),
+    report.kind === "endpoint" ? null : el("button", { class: "btn small", type: "button", onclick: startOver }, "Analyze something else")));
   return card;
+}
+
+function startOver() {
+  clearFile();
+  $("#input").value = "";
+  updateDetected();
+  $("#results").replaceChildren();
+  $("#how").hidden = false;
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  $("#input").focus({ preventScroll: true });
 }
 
 function download(report) {
@@ -648,6 +719,21 @@ async function librarySection(query, title) {
   viewerHead.hidden = true;
   viewer.hidden = true;
   const list = el("ul", { class: "lib-list" });
+  if (data.results.length > 8) {
+    const counter = el("span", { class: "count", "aria-live": "polite" }, `${shown} shown`);
+    const filter = el("input", { type: "text", placeholder: "Filter these files", "aria-label": "Filter these files" });
+    filter.addEventListener("input", () => {
+      const needle = filter.value.trim().toLowerCase();
+      let visible = 0;
+      for (const row of list.children) {
+        const match = !needle || row.textContent.toLowerCase().includes(needle);
+        row.hidden = !match;
+        if (match) visible += 1;
+      }
+      counter.textContent = `${visible} shown`;
+    });
+    card.append(el("div", { class: "lib-tools" }, filter, counter));
+  }
   for (const item of data.results) {
     const open = async () => {
       viewerHead.hidden = false;
@@ -820,7 +906,8 @@ async function analyze() {
       ]);
       spinner.remove();
       results.append(siteResult.status === "fulfilled" ? renderReport(siteResult.value) : errorBox(siteResult.reason));
-      if (libraryResult.status === "fulfilled") results.append(libraryResult.value);
+      const libraryCard = libraryResult.status === "fulfilled" ? libraryResult.value : null;
+      if (libraryCard && siteResult.status === "fulfilled" && libraryCard.querySelector(".lib-list")) results.append(libraryCard);
     } else if (kind === "app") {
       const spinner = loading(results, "Searching published prompts and skills...");
       const card = await librarySection(value);

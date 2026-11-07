@@ -32,6 +32,7 @@ CONTENT_TYPES = {
     ".webmanifest": "application/manifest+json",
     ".png": "image/png",
     ".ico": "image/x-icon",
+    ".pdf": "application/pdf",
 }
 BROWSER_CANDIDATES = [
     r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",

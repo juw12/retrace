@@ -765,7 +765,8 @@ function highlightWords(path, tokens) {
 
 const DOWNLOAD_URL = "https://github.com/juw12/retrace#readme";
 // Retrace Agency demand test: a prefilled public GitHub issue (no backend, nothing collected here).
-const WAITLIST_URL = "https://github.com/juw12/retrace/issues/new?title=Retrace%20Agency%20waitlist&body=Thanks%20for%20your%20interest%20in%20Retrace%20Agency%20%28batch%20AI-transparency%20evidence%20reports%20for%20client%20websites%29.%0A%0APlease%20don%27t%20post%20private%20or%20client%20data%20here.%20This%20issue%20is%20public.%0A%0A-%20Roughly%20how%20many%20client%20websites%20do%20you%20maintain%3F%0A-%20Country%3A%0A-%20Would%20you%20take%20the%20founding%20offer%20%28EUR%2015/month%20for%20life%2C%2030-day%20refund%29%3F%20yes%20/%20maybe%20/%20no%0A-%20What%20would%20you%20want%20in%20the%20client%20report%3F%0A";
+const WAITLIST_URL = "https://github.com/juw12/retrace/issues/new?template=agency-waitlist.yml";
+const SAMPLE_REPORT_URL = "sample-report.pdf";
 
 function errorBox(error, retry) {
   const { title, advice, detail } = friendlyError(error && error.message ? error.message : error);
@@ -967,7 +968,8 @@ function renderReport(report, extra) {
   if (report.kind === "site") {
     card.append(el("p", { class: "waitlist" }, "Look after many client sites? ",
       el("a", { href: WAITLIST_URL, target: "_blank", rel: "noopener" }, "Join the Retrace Agency waitlist"),
-      " for batch scans and a branded evidence report per client."));
+      " for batch scans and a branded evidence report per client (",
+      el("a", { href: SAMPLE_REPORT_URL, target: "_blank", rel: "noopener" }, "sample report, PDF"), ")."));
   }
   const created = new Date().toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
   card.prepend(el("div", { class: "print-only print-head" },

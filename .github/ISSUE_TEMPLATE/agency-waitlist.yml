@@ -1,0 +1,48 @@
+name: Retrace Agency waitlist
+description: Join the founding list for Retrace Agency (batch scans and a branded evidence report per client site).
+title: "Retrace Agency waitlist"
+labels: ["waitlist"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for your interest. **This issue is public, so please don't post private or client data.**
+        Retrace Agency checks up to 25 client websites in one run, on your own computer, and prints a dated evidence report per client.
+        Founding offer: EUR 15/month for life for the first 50 agencies, 30-day refund. Technical evidence, not legal advice.
+  - type: dropdown
+    id: sites
+    attributes:
+      label: How many client websites do you look after?
+      options:
+        - "1-5"
+        - "6-25"
+        - "26-50"
+        - "More than 50"
+    validations:
+      required: true
+  - type: input
+    id: country
+    attributes:
+      label: Country
+      placeholder: e.g. Germany
+  - type: dropdown
+    id: founding
+    attributes:
+      label: Would you take the founding offer (EUR 15/month for life, 30-day refund)?
+      options:
+        - "Yes"
+        - "Maybe"
+        - "No"
+    validations:
+      required: true
+  - type: textarea
+    id: report
+    attributes:
+      label: What would you want in the client report?
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacy
+      options:
+        - label: I haven't included private or client data in this public issue.
+          required: true

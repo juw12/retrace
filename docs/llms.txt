@@ -1,0 +1,32 @@
+# Retrace
+
+> Retrace finds the AI, prompt, model, tools and settings behind an image, a text, a website or a chatbot API. It is a free, open-source (MIT) local app: Python 3.10+ standard library only, no installs, and nothing leaves your computer except the lookups you ask for.
+
+Retrace runs as a desktop app (`python app.py`) and has an online demo that replays recorded examples. Results are evidence with confidence labels, not verdicts. Website findings are technical evidence, not legal advice.
+
+## What it does
+
+- Images: reads the generator, prompt and negative prompt, seed, steps, sampler, model and LoRAs from PNG, JPEG and WebP metadata (A1111/Forge, ComfyUI, NovelAI, InvokeAI, Fooocus and more), plus C2PA Content Credentials and IPTC "AI-generated" flags.
+- Text: looks for ChatGPT citation tokens, utm_source=chatgpt.com, self-identification, reasoning tags, hidden Unicode payloads (TAG characters, variation selectors) and style markers, then gives a heuristic AI-likelihood.
+- Websites: spots AI chat widgets and agents, AI APIs called from the browser, AI site builders, llms.txt, AI-crawler rules in robots.txt, plugin manifests and A2A agent cards. Each scan ends with an AI transparency evidence block (chatbots found, wording about AI in the visible page text, crawler rules, llms.txt) that prints as a dated PDF report.
+- App names: searches public GitHub collections for an app's published system prompts, tool definitions and skills.
+- APIs you own: fingerprints the model behind an OpenAI-compatible endpoint and measures system-prompt leakage.
+
+## Links
+
+- [Online demo](https://juw12.github.io/retrace/): try the recorded examples in a browser
+- [Source code and README](https://github.com/juw12/retrace): install and usage
+- [Sample evidence report (PDF)](https://juw12.github.io/retrace/sample-report.pdf): what a printed website report looks like
+- [Landing page](https://juw12.github.io/p/retrace/): overview
+- [Releases](https://github.com/juw12/retrace/releases): change notes
+
+## Limits
+
+- Exact prompts only survive if the file kept its metadata; screenshots and social-media re-uploads strip it.
+- AI-text detection is probabilistic and easy to fool.
+- Website scans see client-side code only; AI called from a site's own server is invisible. Finding no AI wording on a page does not mean a notice is missing.
+- Use the endpoint probe only on APIs you own or are authorized to test.
+
+## Optional
+
+- [Retrace Agency waitlist](https://github.com/juw12/retrace/issues/new?template=agency-waitlist.yml): batch scans and a branded evidence report per client site, being tested

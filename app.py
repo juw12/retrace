@@ -33,6 +33,7 @@ CONTENT_TYPES = {
     ".png": "image/png",
     ".ico": "image/x-icon",
     ".pdf": "application/pdf",
+    ".txt": "text/plain; charset=utf-8",
 }
 BROWSER_CANDIDATES = [
     r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",

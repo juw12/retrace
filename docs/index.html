@@ -493,7 +493,14 @@ async function libraryPaths(repo) {
     const cached = JSON.parse(localStorage.getItem(cacheKey) || "null");
     if (cached && Date.now() - cached.at < LIBRARY_CACHE_MS) return cached.paths;
   } catch (error) { /* ignore a broken cache entry */ }
-  const response = await fetch(`https://api.github.com/repos/${repo}/git/trees/HEAD?recursive=1`);
+  const url = `https://api.github.com/repos/${repo}/git/trees/HEAD?recursive=1`;
+  let response;
+  try {
+    response = await fetch(url);
+    if (response.status >= 500) response = await fetch(url);  // one retry for GitHub hiccups
+  } catch (error) {
+    response = await fetch(url);  // one retry for a dropped connection; a second failure is reported
+  }
   if (response.status === 403 || response.status === 429) {
     throw new Error("GitHub's hourly limit for anonymous lookups was reached. Try again in an hour, or download Retrace.");
   }
@@ -566,11 +573,19 @@ async function demoLibrarySearch(query) {
   const tokens = libraryTokens(query);
   const errors = [];
   const trees = {};
+  let snapshotDate = null;
   await Promise.all(LIBRARY_REPOS.map(async (repo) => {
     try {
       trees[repo] = await libraryPaths(repo);
     } catch (error) {
-      errors.push(`${repo}: ${error.message}`);
+      try {
+        const snapshot = await librarySnapshot();
+        if (!snapshot.trees[repo]) throw error;
+        trees[repo] = snapshot.trees[repo];
+        snapshotDate = snapshot.built;
+      } catch (snapshotError) {
+        errors.push(`${repo}: ${error.message}`);
+      }
     }
   }));
   if (!Object.keys(trees).length) throw new Error(errors[0] ? errors[0].split(": ").slice(1).join(": ") : "Could not reach GitHub.");
@@ -593,7 +608,21 @@ async function demoLibrarySearch(query) {
     total: results.length,
     errors,
     partial,
+    snapshot: snapshotDate,
   };
+}
+
+// File lists saved when the demo was built: used when GitHub refuses (hourly limit) or can't be reached.
+let snapshotRequest = null;
+function librarySnapshot() {
+  if (!snapshotRequest) {
+    snapshotRequest = fetch("demo/library-index.json").then((response) => {
+      if (!response.ok) throw new Error("No saved file list");
+      return response.json();
+    });
+    snapshotRequest.catch(() => { snapshotRequest = null; });
+  }
+  return snapshotRequest;
 }
 
 async function demoApi(path, body) {
@@ -664,6 +693,9 @@ function friendlyError(message) {
       "The address may be wrong or the site may be down. On a work network, a proxy can also block it."],
     [/CERTIFICATE|SSL/i, "The website's security certificate could not be verified", "The site may be misconfigured. Try its http:// address."],
     [/HTTP 40[13]/i, "The website refused the request", "It blocks automated visitors, so its code cannot be scanned from here."],
+    [/hourly limit/i, "GitHub's hourly lookup limit was reached", null],
+    [/Failed to fetch|NetworkError|Load failed|Could not reach GitHub/i, "Could not reach GitHub",
+      "Check your internet connection and try again. A work network or ad blocker can also block it."],
     [/HTTP 404 from \S*chat\/completions/i, "Your AI endpoint was not found",
       "Check the base URL in Settings. Most servers end in /v1, for example http://localhost:11434/v1."],
     [/HTTP 400/i, "The server rejected the request", "Check the address. Some sites also reject automated visitors."],
@@ -845,6 +877,9 @@ async function librarySection(query, title) {
     return card;
   }
   const shown = data.results.length;
+  if (data.snapshot) {
+    card.append(noteBox(`GitHub could not be searched live right now, so this used the file list saved on ${data.snapshot}. Files added since then may be missing.`));
+  }
   if (data.partial) {
     card.append(noteBox("No file name has every word you typed, so these are the closest matches."));
   }

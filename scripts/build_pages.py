@@ -8,6 +8,7 @@ the real analyzers, so the online demo shows genuine output (no invented data).
 
 import json
 import re
+from datetime import date
 import shutil
 import sys
 from pathlib import Path
@@ -47,6 +48,16 @@ def main():
         print(f"recorded docs/demo/{name}")
     if recordings["library.json"]["errors"]:
         sys.exit(f"library search had errors: {recordings['library.json']['errors']}")
+
+    # File lists of every collection, so the demo still works when GitHub's
+    # 60-lookups-per-hour anonymous limit is used up (common on shared office networks).
+    trees = {repo: library.repo_paths(repo) for repo in library.REPOS}
+    empty = [repo for repo, paths in trees.items() if not paths]
+    if empty:
+        sys.exit(f"empty file list for: {empty}")
+    index = {"built": date.today().isoformat(), "trees": trees}
+    (demo / "library-index.json").write_text(json.dumps(index, separators=(",", ":")), encoding="utf-8")
+    print(f"saved docs/demo/library-index.json ({sum(len(paths) for paths in trees.values())} files)")
     print("docs/ ready")
 
 

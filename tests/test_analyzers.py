@@ -224,6 +224,19 @@ class TransparencyEvidenceTests(unittest.TestCase):
         page = '<p>Try our AI agent <span class="material-symbols-outlined">arrow_right_alt</span> today</p>'
         self.assertNotIn("arrow_right_alt", site.visible_text(page))
 
+    def test_ai_wording_quotes_the_sentence_not_the_menu(self):
+        page = ("<nav><ul><li>AI Chatbot</li><li>Pricing</li><li>Blog</li></ul></nav>"
+                "<p>Welcome! Our AI chatbot answers questions about your order. A person replies within a day.</p>")
+        matches = site.ai_wording(site.visible_text(page))
+        self.assertEqual(matches[0]["snippet"], "Our AI chatbot answers questions about your order.")
+        self.assertNotIn("Pricing", matches[0]["snippet"])
+
+    def test_ai_wording_cuts_long_sentences_on_word_boundaries(self):
+        long_line = "word " * 80 + "our AI assistant helps " + "more " * 80
+        snippet = site.ai_wording(long_line)[0]["snippet"]
+        self.assertLessEqual(len(snippet), site.SNIPPET_CHARS + 2)
+        self.assertTrue(snippet.startswith("…") and snippet.endswith("…"))
+
     def test_chatbot_without_wording_is_evidence_not_a_verdict(self):
         found = [("Tidio (Lyro AI)", "AI support chat"), ("Wix (offers AI site builder)", "Site builder"),
                  ("OpenAI API (called from the browser)", "AI API in client code")]

@@ -1,5 +1,7 @@
 # Retrace
 
+[![Mentioned in Awesome](https://awesome.re/mentioned-badge.svg)](https://github.com/BrethofAI/awesome-llms-txt)
+
 Find the AI, prompt, model, tools and settings behind an **image**, a **text**, a **website** or a **chatbot API**.
 **Try the online demo:** https://juw12.github.io/retrace/ (runs three recorded examples; the full app runs on your computer).
 

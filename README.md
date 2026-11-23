@@ -18,6 +18,15 @@ python tests/ui_smoke.py http://127.0.0.1:8765/   # optional browser check (need
 
 Closing the window stops the app. It is also an installable PWA (browser menu, Install Retrace), with light and dark themes.
 
+## Get it on your device
+
+- **Windows:** [`Retrace-Windows-Setup.exe`](https://github.com/juw12/retrace/releases/download/desktop/Retrace-Windows-Setup.exe) (no admin needed; if Windows says it protected your PC, choose *More info → Run anyway*), or without installing [`Retrace-Windows-Portable.zip`](https://github.com/juw12/retrace/releases/download/desktop/Retrace-Windows-Portable.zip).
+- **Mac:** [`Retrace-macOS-AppleSilicon.dmg`](https://github.com/juw12/retrace/releases/download/desktop/Retrace-macOS-AppleSilicon.dmg) (M1 and newer) or [`Retrace-macOS-Intel.dmg`](https://github.com/juw12/retrace/releases/download/desktop/Retrace-macOS-Intel.dmg). The first time, macOS blocks it because it is not notarized: **System Settings → Privacy & Security → Open Anyway**.
+- **Android:** [`Retrace-android.apk`](https://github.com/juw12/retrace/releases/download/android/Retrace-android.apk): open the file on the phone and allow your browser to install apps once.
+- **iPhone:** open https://juw12.github.io/retrace/ in Safari, tap Share, then **Add to Home Screen**.
+
+The Windows, Mac and Android apps open Retrace's web page in a window of its own ([`desktop/`](desktop/README.md), [`android/`](android/README.md)) and change with it. That page is a demo of three recorded examples; the full app runs on a computer (`python app.py`). Each build is opened on GitHub's machines before it is published: on Windows and on a Mac the page loads, the app starts and can store data; on an Android emulator it installs, opens and stays up. They are not code-signed or notarised, and no real phone or PC has run them yet.
+
 ## What it does
 
 | Input | What you get |

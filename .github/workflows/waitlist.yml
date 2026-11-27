@@ -23,7 +23,7 @@ jobs:
       startsWith(github.event.issue.title, 'Retrace Agency waitlist')
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Thank a new sign-up
         if: github.event_name == 'issues' && github.event.action == 'opened'
         run: python3 scripts/waitlist_tally.py --welcome ${{ github.event.issue.number }}
